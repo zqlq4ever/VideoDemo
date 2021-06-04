@@ -1,0 +1,18 @@
+<preference-headers xmlns:android = "http://schemas.android.com/apk/res/android">
+    
+    <header
+        android:fragment = "com.luqian.videodemo.setting.SettingsActivity$GeneralPreferenceFragment"
+        android:icon = "@drawable/ic_info_black_24dp"
+        android:title = "@string/sp_header_general" />
+    
+    <header
+        android:fragment = "com.luqian.videodemo.setting.SettingsActivity$NotificationPreferenceFragment"
+        android:icon = "@drawable/ic_audio"
+        android:title = "@string/sp_header_audio" />
+    
+    <header
+        android:fragment = "com.luqian.videodemo.setting.SettingsActivity$DataSyncPreferenceFragment"
+        android:icon = "@drawable/ic_video"
+        android:title = "@string/sp_header_video" />
+
+</preference-headers>

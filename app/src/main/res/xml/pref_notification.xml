@@ -1,0 +1,13 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- A 'parent' preference, which enables/disables child preferences (below)
+         when checked/unchecked. -->
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="key_audio_only"
+        android:title="@string/pref_title_audio_only" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="key_disable_builtin_ns"
+        android:title="@string/pref_title_disable_buildin_ns" />
+</PreferenceScreen>

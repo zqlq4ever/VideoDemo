@@ -1,0 +1,62 @@
+<PreferenceScreen xmlns:android = "http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue = "@string/sp_default_user_name"
+        android:inputType = "textCapWords"
+        android:key = "user_display_name"
+        android:maxLines = "1"
+        android:selectAllOnFocus = "true"
+        android:singleLine = "true"
+        android:title = "@string/pref_title_display_name" />
+    
+    <EditTextPreference
+        android:defaultValue = "@string/pref_default_media_server_url"
+        android:inputType = "text"
+        android:key = "key_media_server_url"
+        android:maxLines = "1"
+        android:selectAllOnFocus = "true"
+        android:singleLine = "true"
+        android:title = "@string/sp_title_media_server" />
+    
+    <EditTextPreference
+        android:inputType = "text"
+        android:key = "key_appid"
+        android:maxLines = "1"
+        android:selectAllOnFocus = "true"
+        android:singleLine = "true"
+        android:title = "AppID" />
+    
+    <SwitchPreference
+        android:defaultValue = "false"
+        android:key = "key_datachannel_test"
+        android:title = "@string/pref_title_datachannel_test" />
+    
+    <PreferenceCategory>
+        <EditTextPreference
+            android:inputType = "text"
+            android:key = "key_rtmp_url"
+            android:maxLines = "1"
+            android:selectAllOnFocus = "true"
+            android:singleLine = "true"
+            android:title = "@string/pref_title_rtmp_url" />
+        
+        <SwitchPreference
+            android:defaultValue = "false"
+            android:key = "key_rtmp_mix"
+            android:title = "@string/pref_title_rtmp_mix" />
+        
+        <SwitchPreference
+            android:defaultValue = "false"
+            android:key = "key_recording"
+            android:title = "@string/pref_title_recording" />
+    </PreferenceCategory>
+    <EditTextPreference
+        android:capitalize = "words"
+        android:defaultValue = "@string/sp_default_platform_server_url"
+        android:key = "key_platform_server_url"
+        android:maxLines = "1"
+        android:selectAllOnFocus = "true"
+        android:singleLine = "true"
+        android:title = "@string/pref_title_platform_server" />
+
+
+</PreferenceScreen>
