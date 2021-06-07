@@ -2,13 +2,13 @@ package com.luqian.videodemo;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.baidu.rtc.RTCVideoView;
 import com.baidu.rtc.videoroom.R;
 
-
+/**
+ * 1 v 1 音视频
+ */
 public class VideoCallActivity extends RtcBaseActivity implements VideoCallProtocol.CallStateObserver {
 
     private static final String TAG = "VideoCallActivity";
@@ -21,15 +21,15 @@ public class VideoCallActivity extends RtcBaseActivity implements VideoCallProto
         super.onCreate(savedInstanceState);
         VideoCallProtocol.CallConfig config = new VideoCallProtocol.CallConfig();
         callProtocol = new VideoCallProtocol(this, config);
-
         setContentView(R.layout.activity_videocall);
-        callBtnImage = (ImageView) findViewById(R.id.call_imageview);
+
+        ivCall = findViewById(R.id.iv_call);
         if (callMode) {
-            callBtnImage.setImageResource(R.drawable.btn_start_call);
-            callBtnImage.setOnClickListener(view -> {
+            ivCall.setImageResource(R.drawable.ic_start_call);
+            ivCall.setOnClickListener(view -> {
                 if (callProtocol.getCurrentState() == VideoCallProtocol.CallState.kStable) {
                     callProtocol.startCall();
-                    callBtnImage.setImageResource(R.drawable.btn_end_call);
+                    ivCall.setImageResource(R.drawable.btn_end_call);
 
                     final AlertDialog.Builder dialog = new AlertDialog.Builder(VideoCallActivity.this);
                     dialog.setTitle(R.string.start_call);
@@ -39,17 +39,18 @@ public class VideoCallActivity extends RtcBaseActivity implements VideoCallProto
 
                 } else if (callProtocol.getCurrentState() == VideoCallProtocol.CallState.kCalling) {
                     callProtocol.finishCall();
-                    callBtnImage.setImageResource(R.drawable.btn_start_call);
+                    ivCall.setImageResource(R.drawable.ic_start_call);
                 } else {
                     callProtocol.cancelCall();
-                    callBtnImage.setImageResource(R.drawable.btn_start_call);
+                    ivCall.setImageResource(R.drawable.ic_start_call);
                 }
             });
         }
 
-        mVideoRoom.setLocalDisplay((RTCVideoView) findViewById(R.id.local_rtc_video_view));
-        mVideoRoom.setRemoteDisplay((RTCVideoView) findViewById(R.id.remote_rtc_video_view));
-        doLogin();
+        mVideoRoom.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
+        mVideoRoom.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
+
+        loginRtc();
     }
 
 
@@ -99,7 +100,7 @@ public class VideoCallActivity extends RtcBaseActivity implements VideoCallProto
                         Toast.makeText(getApplicationContext(),
                                 R.string.timeout_end, Toast.LENGTH_LONG).show();
                     }
-                    callBtnImage.setImageResource(R.drawable.btn_start_call);
+                    ivCall.setImageResource(R.drawable.ic_start_call);
                     break;
                 case kInviting:
                     break;
@@ -119,7 +120,7 @@ public class VideoCallActivity extends RtcBaseActivity implements VideoCallProto
                         Toast.makeText(getApplicationContext(),
                                 R.string.call_establish_ing, Toast.LENGTH_SHORT).show();
                     }
-                    callBtnImage.setImageResource(R.drawable.btn_end_call);
+                    ivCall.setImageResource(R.drawable.btn_end_call);
                     mVideoRoom.startPublish();
                     mVideoRoom.subscribeStreaming(0, partnerId);
                     break;
@@ -148,5 +149,12 @@ public class VideoCallActivity extends RtcBaseActivity implements VideoCallProto
             dialog.setNegativeButton(R.string.refuse_call, (dialogInterface, i) -> callProtocol.cancelCall());
             receiveDialog = dialog.show();
         });
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 }

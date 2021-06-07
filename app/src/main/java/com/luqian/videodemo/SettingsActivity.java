@@ -1,4 +1,4 @@
-package com.luqian.videodemo.setting;
+package com.luqian.videodemo;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
@@ -15,10 +16,13 @@ import com.baidu.rtc.videoroom.R;
 
 import java.util.List;
 
-public class SettingsActivity extends AppCompatPreferenceActivity {
+/**
+ * 设置页面
+ */
+public class SettingsActivity extends PreferenceActivity {
 
 
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = (preference, value) -> {
+    private static final Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = (preference, value) -> {
         String stringValue = value.toString();
         if (preference instanceof ListPreference) {
             ListPreference listPreference = (ListPreference) preference;
@@ -33,32 +37,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     };
 
 
-    private static boolean isXLargeTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK)
-                >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
-    }
-
-
     /**
-     * 将首选项的摘要与其值绑定。更具体地说，当
-     * 首选项的值已更改，其摘要（下方的文本行
-     * 首选项标题）更新以反映该值。总结也是
-     * 调用此方法后立即更新。确切的显示格式是
-     * 取决于偏好的类型。
+     * 将首选项的摘要与其值绑定。
+     * 当 SP 的值更改，其摘要（下方的文本行首选项标题）更新以反映该值。
+     *
+     * <p>总结就是：
+     * 调用此方法后立即更新。确切的显示格式取决于SP的类型。
      */
     private static void bindPreferenceSummaryToValue(Preference preference) {
-        // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
         if (preference instanceof SwitchPreference) {
-            // current value.
             sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
                     PreferenceManager
                             .getDefaultSharedPreferences(preference.getContext())
                             .getBoolean(preference.getKey(), false));
         } else {
-            // Trigger the listener immediately with the preference's
-            // current value.
             sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
                     PreferenceManager
                             .getDefaultSharedPreferences(preference.getContext())
@@ -72,26 +65,39 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         return isXLargeTablet(this);
     }
 
-
-    public void onBuildHeaders(List<Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
+    @Override
+    public void onBuildHeaders(List<PreferenceActivity.Header> target) {
+        loadHeadersFromResource(R.xml.sp_headers, target);
     }
 
 
     @Override
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName)
-                || DataSyncPreferenceFragment.class.getName().equals(fragmentName)
-                || NotificationPreferenceFragment.class.getName().equals(fragmentName);
+                || GeneralSPFragment.class.getName().equals(fragmentName)
+                || VideoSPFragment.class.getName().equals(fragmentName)
+                || AudioSPFragment.class.getName().equals(fragmentName);
     }
 
 
-    public static class GeneralPreferenceFragment extends PreferenceFragment {
+    /**
+     * 是否为平板尺寸（SettingsActivity 根据尺寸自适应页面）
+     */
+    private static boolean isXLargeTablet(Context context) {
+        return (context.getResources().getConfiguration().screenLayout
+                & Configuration.SCREENLAYOUT_SIZE_MASK)
+                >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
+    }
+
+
+    /**
+     * 通用设置
+     */
+    public static class GeneralSPFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_general);
+            addPreferencesFromResource(R.xml.sp_general);
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference("user_display_name"));
@@ -115,7 +121,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     }
 
 
-    public static class NotificationPreferenceFragment extends PreferenceFragment {
+    /**
+     * 音频设置
+     */
+    public static class AudioSPFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -138,7 +147,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     }
 
 
-    public static class DataSyncPreferenceFragment extends PreferenceFragment {
+    /**
+     * 视频设置
+     */
+    public static class VideoSPFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);

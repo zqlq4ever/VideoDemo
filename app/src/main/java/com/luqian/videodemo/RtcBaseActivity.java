@@ -26,8 +26,11 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
 
     private static final String TAG = "RtcBaseActivity";
 
-    protected ImageView callBtnImage;
+    protected ImageView ivCall;
     protected BaiduRtcRoom mVideoRoom;
+    /**
+     * 是否 1v1 呼叫
+     */
     protected boolean callMode = false;
     protected String mAppId = "";
     protected String mTokenStr = "";
@@ -42,10 +45,10 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     boolean mTestDataChannel = false;
     private final boolean mIsEnableExternalRender = false;
     //    BaiduRtcRoom.UserList mUserList = null;
-    String mInfo = "error";
-    VideoCallProtocol callProtocol = null;
-    long partnerId = 0;
-    RtcEventListener eventListener;
+    private String mInfo = "error";
+    protected VideoCallProtocol callProtocol = null;
+    protected long partnerId = 0;
+    protected RtcEventListener eventListener;
 
     private final Runnable fireData = new Runnable() {
         @Override
@@ -61,6 +64,7 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
                     bs.set(i);
                 }
             }
+            //  设置同步数据（除了音频、视频外的）
             mVideoRoom.sendData(ByteBuffer.wrap(bs.toByteArray()));
             mVideoRoom.sendData(ByteBuffer.wrap("88888888888888众里\0\0\0\0寻他千百度. ".getBytes()));
             mHandler.postDelayed(fireData, 10000);
@@ -98,7 +102,7 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
 
         //  服务器
         if (TextUtils.isEmpty(mediaServer)) {
-            mMediaServer = getString(R.string.pref_default_media_server_url);
+            mMediaServer = getString(R.string.sp_default_media_server_url);
         } else {
             mMediaServer = mediaServer;
         }
@@ -118,14 +122,16 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
 
         Log.i(TAG, "BaiduRTC(BRTC) SDK version is: " + BaiduRtcRoom.version());
 
+        //  token 可以不写，是用户鉴权用的
         mVideoRoom = BaiduRtcRoom.initWithAppID(this, mAppId, mTokenStr);
-
-//        mVideoRoom = BaiduRtcRoom.initWithAppID(this,mAppId,mTokenStr, "arm64-v8a", true);
+        //  是否打开调试信息
 //        mVideoRoom.setVerbose(true);
+        //  RTC 统计信息上报
 //        mVideoRoom.enableStatsToServer(true,"online");
-
+        //  是否开启音频噪声抑制
         mVideoRoom.enableAns(mDisableBuildInNs);
         mVideoRoom.setBaiduRtcRoomDelegate(this);
+        //  设置服务器地址
         mVideoRoom.setMediaServerURL(mMediaServer);
 
         String rtmp_url = getIntent().getExtras().getString("rtmp_url");
@@ -142,61 +148,62 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
         }
 
         mHandler = new Handler();
-        if (mTestDataChannel) {
+        //  额外扩展数据流发送（除了音视频数据流）
+       /* if (mTestDataChannel) {
             mHandler.postDelayed(fireData, 10000);
-        }
+        }*/
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        hideBottomUIMenu();
         mVideoRoom.startPreview();
     }
 
     @Override
     protected void onDestroy() {
+        mVideoRoom.logoutRtcRoom();
         mVideoRoom.destroy();
         super.onDestroy();
     }
 
     @Override
     public void onRoomEventUpdate(int roomEvents, long data, String extra_info) {
+
         Log.i(TAG, "onRoomEventUpdate is: " + roomEvents);
 
-        if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_OK) {
-
-            if (eventListener != null) {
-                eventListener.onRtcRoomEeventLoginOk();
-            }
-
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR
-                || roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST) {
-
-            switch (roomEvents) {
-                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR: {
-                    mInfo = getString(R.string.login_room_failed);
-                    break;
+        switch (roomEvents) {
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_OK:
+                if (eventListener != null) {
+                    eventListener.onRtcRoomEeventLoginOk();
                 }
-                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST: {
-                    mInfo = getString(R.string.connection_lost);
-                    break;
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR:
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST:
+                switch (roomEvents) {
+                    case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR: {
+                        mInfo = getString(R.string.login_room_failed);
+                        break;
+                    }
+                    case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST: {
+                        mInfo = getString(R.string.connection_lost);
+                        break;
+                    }
                 }
-            }
+                this.runOnUiThread(() -> {
+                    Toast.makeText(getApplicationContext(),
+                            mInfo,
+                            Toast.LENGTH_SHORT)
+                            .show();
+                    RtcBaseActivity.this.finish();
+                });
 
-            this.runOnUiThread(() -> {
-                Toast.makeText(getApplicationContext(),
-                        mInfo,
-                        Toast.LENGTH_SHORT)
-                        .show();
-                RtcBaseActivity.this.finish();
-            });
-
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_COMING) {
-            Log.e(TAG, "onRoomEventUpdate : Coming UID " + data + " Display:" + extra_info);
-            if (eventListener != null) {
-                eventListener.onRemoteComming(data);
-            }
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_COMING:
+                Log.e(TAG, "onRoomEventUpdate : Coming UID " + data + " Display:" + extra_info);
+                if (eventListener != null) {
+                    eventListener.onRemoteComming(data);
+                }
             /*runOnUiThread(() -> {
                 mVideoRoom.startPublish();
                 mVideoRoom.subscribeStreaming(0, data);
@@ -212,50 +219,55 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
                     }
                 }, 10000);
             });*/
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_LEAVING) {
-            Log.e(TAG, "onRoomEventUpdate : Leaving UID " + data);
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_LEAVING:
+                Log.e(TAG, "onRoomEventUpdate : Leaving UID " + data);
 //            runOnUiThread(() -> mVideoRoom.stopPublish());
-        } else if (roomEvents
-                == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_AVAILABLE_SEND_BITRATE) {
-            Log.e(TAG, "onRoomEventUpdate : Available BitRate: " + data);
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_AVAILABLE_SEND_BITRATE:
+                Log.e(TAG, "onRoomEventUpdate : Available BitRate: " + data);
            /* RtcParameterSettings cfg = RtcParameterSettings.getDefaultSettings();
             cfg.VideoMaxkbps = 1000;
             mVideoRoom.setParamSettings(cfg, RtcParameterSettings
                     .RtcParamSettingType.RTC_VIDEO_PARAM_SETTINGS_BITRATE);*/
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_MESSAGE) {
-            Log.e(TAG, "onRoomEventUpdate onUserMessage id: " + data + " msg: " + extra_info);
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_MESSAGE:
+                Log.e(TAG, "onRoomEventUpdate onUserMessage id: " + data + " msg: " + extra_info);
 
-            if (extra_info.contains("ping getattribute")) {
-                mVideoRoom.getUserAttribute(data);
-            }
-            if (extra_info.contains("ping sendmessage")) {
-                mVideoRoom.sendMessageToUser("hello", 0);
-            }
-            if (extra_info.contains("ping setattribute")) {
-                mVideoRoom.setUserAttribute("{'name':'jim','tel':'123456789'}");
-            }
-            if (extra_info.contains("ping disabandroom")) {
-                mVideoRoom.disbandRoom();
-            }
-            if (extra_info.contains("ping shutupuser")) {
-                mVideoRoom.shutUpUserWithId(123456);
-            }
-            if (extra_info.contains("ping unshutupuser")) {
-                mVideoRoom.shutUpUserWithId(123456, false);
-            }
-            if (extra_info.contains("ping kickoffuser")) {
-                mVideoRoom.kickOffUserWithId(123456);
-            }
-            if (callMode) {
-                if (callProtocol != null) {
-                    callProtocol.onMessage(extra_info);
+                if (extra_info.contains("ping getattribute")) {
+                    mVideoRoom.getUserAttribute(data);
                 }
-            }
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_ATTRIBUTE) {
-            Log.e(TAG, "onRoomEventUpdate onUserAttribute id: " + data + " attribute: " + extra_info);
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_JOINED_ROOM) {
-            Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + "name: " + extra_info);
-            partnerId = data;
+                if (extra_info.contains("ping sendmessage")) {
+                    mVideoRoom.sendMessageToUser("hello", 0);
+                }
+                if (extra_info.contains("ping setattribute")) {
+                    mVideoRoom.setUserAttribute("{'name':'jim','tel':'123456789'}");
+                }
+                if (extra_info.contains("ping disabandroom")) {
+                    mVideoRoom.disbandRoom();
+                }
+                if (extra_info.contains("ping shutupuser")) {
+                    mVideoRoom.shutUpUserWithId(123456);
+                }
+                if (extra_info.contains("ping unshutupuser")) {
+                    mVideoRoom.shutUpUserWithId(123456, false);
+                }
+                if (extra_info.contains("ping kickoffuser")) {
+                    mVideoRoom.kickOffUserWithId(123456);
+                }
+                //  1v1 呼叫模式
+                if (callMode) {
+                    if (callProtocol != null) {
+                        callProtocol.onMessage(extra_info);
+                    }
+                }
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_ATTRIBUTE:
+                Log.e(TAG, "onRoomEventUpdate onUserAttribute id: " + data + " attribute: " + extra_info);
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_JOINED_ROOM:
+                Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + "name: " + extra_info);
+                partnerId = data;
             /*if (mIsEnableExternalRender) {
                 mVideoRoom.registerVideoObservers(new BigInteger(Long.toString(data)), new RTCVideoExternalRender(null, 0) {
                     @Override
@@ -264,8 +276,10 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
                     }
                 });
             }*/
-        } else if (roomEvents == BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_LEAVING_ROOM) {
-            Log.e(TAG, "onRoomEventUpdate onUserLeavingRoom id: " + data);
+                break;
+            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_LEAVING_ROOM:
+                Log.e(TAG, "onRoomEventUpdate onUserLeavingRoom id: " + data);
+                break;
         }
     }
 
@@ -308,6 +322,7 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
         Log.i(TAG, "onRoomDataMessage : " + Charset.defaultCharset().decode(data).toString());
     }
 
+
     public void onLocalVideoMuteClicked(View view) {
         ImageView iv = (ImageView) view;
         if (iv.isSelected()) {
@@ -323,27 +338,31 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     }
 
 
-    public void onLocalAudioMuteClicked(View view) {
-        ImageView iv = (ImageView) view;
-        if (iv.isSelected()) {
-            iv.setSelected(false);
-            iv.setImageResource(R.drawable.btn_mute);
+    /**
+     * 开启 或 关闭 声音
+     */
+    public void onLocalAudioMuteClicked(ImageView ivVoice) {
+        if (ivVoice.isSelected()) {
+            ivVoice.setSelected(false);
+            ivVoice.setImageResource(R.drawable.ic_mute_voice);
         } else {
-            iv.setSelected(true);
-            iv.setImageResource(R.drawable.btn_mute_selected);
+            ivVoice.setSelected(true);
+            ivVoice.setImageResource(R.drawable.ic_mute_voice_selected);
         }
-        mVideoRoom.muteMicphone(iv.isSelected());
+        mVideoRoom.muteMicphone(ivVoice.isSelected());
     }
 
 
-    public void onSwitchCameraClicked(View view) {
-        ImageView iv = (ImageView) view;
-        if (iv.isSelected()) {
-            iv.setSelected(false);
-            iv.setImageResource(R.drawable.btn_switch_camera);
+    /**
+     * 切换前后摄像头
+     */
+    public void onSwitchCameraClicked(ImageView ivSwitchCamera) {
+        if (ivSwitchCamera.isSelected()) {
+            ivSwitchCamera.setSelected(false);
+            ivSwitchCamera.setImageResource(R.drawable.ic_switch_camera);
         } else {
-            iv.setSelected(true);
-            iv.setImageResource(R.drawable.btn_switch_camera_selected);
+            ivSwitchCamera.setSelected(true);
+            ivSwitchCamera.setImageResource(R.drawable.btn_switch_camera_selected);
         }
         mVideoRoom.switchCamera();
     }
@@ -353,10 +372,10 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
         ImageView iv = (ImageView) view;
         if (iv.isSelected()) {
             iv.setSelected(false);
-            iv.setImageResource(R.drawable.btn_speaker);
+            iv.setImageResource(R.drawable.ic_speaker);
         } else {
             iv.setSelected(true);
-            iv.setImageResource(R.drawable.btn_speaker_selected);
+            iv.setImageResource(R.drawable.ic_speaker_selected);
         }
         mVideoRoom.switchLoundSpeaker();
     }
@@ -365,84 +384,75 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     public void onEndCallClicked(View view) {
         if (callMode)
             return;
-        mVideoRoom.logoutRtcRoom();
-        mVideoRoom.destroy();
         finish();
     }
 
 
-    protected void doLogin() {
-        RtcParameterSettings cfg = RtcParameterSettings.getDefaultSettings();
+    protected void loginRtc() {
+        RtcParameterSettings rtcSetting = RtcParameterSettings.getDefaultSettings();
 
-        cfg.VideoResolution = mVideoResolution;
-        cfg.VideoFps = 15;
+        rtcSetting.VideoResolution = mVideoResolution;
+        rtcSetting.VideoFps = 15;
 
         if (mVideoResolution.contains("128kbps")) {
-            cfg.VideoMaxkbps = 128;
+            rtcSetting.VideoMaxkbps = 128;
         } else if (mVideoResolution.contains("256kbps")) {
-            cfg.VideoMaxkbps = 256;
+            rtcSetting.VideoMaxkbps = 256;
         } else if (mVideoResolution.contains("350kbps")) {
-            cfg.VideoMaxkbps = 350;
+            rtcSetting.VideoMaxkbps = 350;
         } else if (mVideoResolution.contains("500kbps")) {
-            cfg.VideoMaxkbps = 500;
+            rtcSetting.VideoMaxkbps = 500;
         } else if (mVideoResolution.contains("800kbps")) {
-            cfg.VideoMaxkbps = 800;
+            rtcSetting.VideoMaxkbps = 800;
         } else if (mVideoResolution.contains("1000kbps")) {
-            cfg.VideoMaxkbps = 1000;
+            rtcSetting.VideoMaxkbps = 1000;
         } else if (mVideoResolution.contains("1500kbps")) {
-            cfg.VideoMaxkbps = 1500;
+            rtcSetting.VideoMaxkbps = 1500;
         } else if (mVideoResolution.contains("2000kbps")) {
-            cfg.VideoMaxkbps = 2000;
+            rtcSetting.VideoMaxkbps = 2000;
         } else if (mVideoResolution.contains("3000kbps")) {
-            cfg.VideoMaxkbps = 3000;
+            rtcSetting.VideoMaxkbps = 3000;
         } else if (mVideoResolution.contains("5000kbps")) {
-            cfg.VideoMaxkbps = 5000;
+            rtcSetting.VideoMaxkbps = 5000;
         } else if (mVideoResolution.contains("12000kbps")) {
-            cfg.VideoMaxkbps = 12000;
+            rtcSetting.VideoMaxkbps = 12000;
         } else if (mVideoResolution.contains("40000kbps")) {
-            cfg.VideoMaxkbps = 40000;
+            rtcSetting.VideoMaxkbps = 40000;
         } else {
-            cfg.VideoMaxkbps = 1000;
+            rtcSetting.VideoMaxkbps = 1000;
         }
 
-        cfg.HasData = mTestDataChannel;
+        rtcSetting.HasData = mTestDataChannel;
 
         if (mAudioOnly) {
-            cfg.HasVideo = false;
+            rtcSetting.HasVideo = false;
         }
 
-        cfg.ConnectionTimeoutMs = 5000;
-        cfg.ReadTimeoutMs = 5000;
+        rtcSetting.ConnectionTimeoutMs = 5000;
+        rtcSetting.ReadTimeoutMs = 5000;
 
         if (Build.MANUFACTURER.contains("Ainemo")
                 || Build.MODEL.contains("NV6001")
                 || Build.MODEL.contains("NV6101")
                 || Build.MODEL.contains("NV2001")
                 || Build.MODEL.contains("NV5001")) { // Duer 1s 1C 1A 1L, legacy
-            cfg.AudioFrequency = 16000;
-            cfg.AudioChannel = 2;
-            cfg.AudioContentType = AudioAttributes.CONTENT_TYPE_MUSIC;
+            rtcSetting.AudioFrequency = 16000;
+            rtcSetting.AudioChannel = 2;
+            rtcSetting.AudioContentType = AudioAttributes.CONTENT_TYPE_MUSIC;
         }
 
-        cfg.AutoPublish = !callMode;       // default is true.  for mVideoRoom.startPublish() set to false.
+        rtcSetting.AutoPublish = !callMode;       // default is true.  for mVideoRoom.startPublish() set to false.
 
-        cfg.AutoSubScribe = !callMode;     // default is true.  for mVideoRoom.subscribeStreaming() set to false.
+        rtcSetting.AutoSubScribe = !callMode;     // default is true.  for mVideoRoom.subscribeStreaming() set to false.
 
         /* cfg.VideoRenderMode = RtcParameterSettings.RtcVideoRenderMode.RTC_VIDEO_RENDER_MODE_EXTERNAL;
         mIsEnableExternalRender = true;
         cfg.MicPhoneMuted = true;
         cfg.CameraMuted = true;*/
 
-        mVideoRoom.setParamSettings(cfg, RtcParameterSettings.RtcParamSettingType.RTC_PARAM_SETTINGS_ALL);
+        mVideoRoom.setParamSettings(rtcSetting, RtcParameterSettings.RtcParamSettingType.RTC_PARAM_SETTINGS_ALL);
 
         mVideoRoom.loginRtcRoomWithRoomName(mRoomName, Long.parseLong(mUserId), mUserName);
-    }
-
-
-    protected void hideBottomUIMenu() {
-        View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
     }
 
 

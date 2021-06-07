@@ -7,6 +7,19 @@ import org.json.JSONObject;
 
 public class VideoCallProtocol {
 
+    /**
+     * 当前状态
+     */
+    private CallState currentState = CallState.kStable;
+    /**
+     * 当前角色
+     */
+    private CallRole currentRole = CallRole.kSender;
+    private final CallStateObserver observer;
+    private final CallConfig config;
+    private final Handler timerHandler;     //  定时器
+    private Runnable timerRunnable;
+
     enum CallCommand {
 
         kInvite(101),   // 发起呼叫
@@ -28,39 +41,46 @@ public class VideoCallProtocol {
         }
     }
 
+
+    /**
+     * 呼叫状态
+     */
     enum CallState {
         kStable,
-        kInviting,
-        kRinging,
+        kInviting,   // 发起呼叫中
+        kRinging,    // 响铃中
         kCalling,    // 通话中
         kReceiveInviting,
     }
 
+
+    /**
+     * 呼叫角色：发送方、接收方
+     */
     enum CallRole {
         kSender,
         kReceiver,
     }
 
+
+    /**
+     * 呼叫状态监听
+     */
     interface CallStateObserver {
         void onStateChange(CallState state, CallRole role, CallCommand reasonCommand, CallRole commandSource);
 
         void sendMessage(String msg);
     }
 
-    public static class CallConfig {
-        CallConfig() {
-        }
 
-        public int invitTimeout = 5000;    // invite 超时时间
-        public int ringTimeout = 10000;     // ring 超时时间
+    /**
+     * 呼叫配置
+     */
+    public static class CallConfig {
+        public int invitTimeout = 5_000;    // invite 发起呼叫超时时间
+        public int ringTimeout = 10_000;     // ring 超时时间
     }
 
-    private CallState currentState = CallState.kStable;
-    private CallRole currentRole = CallRole.kSender;
-    private final CallStateObserver observer;
-    private final CallConfig config;
-    private final Handler timerHandler;     //  定时器
-    private Runnable timerRunnable;
 
     public VideoCallProtocol(CallStateObserver observer, CallConfig config) {
         this.observer = observer;
@@ -68,48 +88,61 @@ public class VideoCallProtocol {
         timerHandler = new Handler();
     }
 
+
     public CallState getCurrentState() {
         return currentState;
     }
 
-    //  发起会话
+    /**
+     * 发起会话
+     */
     public void startCall() {
         sendInvite();
         currentState = CallState.kInviting;
         currentRole = CallRole.kSender;
-        timerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                currentState = CallState.kStable;
-                observer.onStateChange(currentState, currentRole, CallCommand.kRequestTimeout, CallRole.kSender);
-            }
+
+        timerRunnable = () -> {
+            currentState = CallState.kStable;
+            observer.onStateChange(currentState, currentRole, CallCommand.kRequestTimeout, CallRole.kSender);
         };
         timerHandler.postDelayed(timerRunnable, config.invitTimeout);
     }
 
-    //  接收会话
+    /**
+     * 接收会话
+     */
     public void receiveCall() {
         currentState = CallState.kCalling;
-        timerHandler.removeCallbacks(timerRunnable);   // 关闭ring定时器
+        timerHandler.removeCallbacks(timerRunnable);   // 关闭 ring 定时器
         sendOk();
         observer.onStateChange(currentState, currentRole, CallCommand.kOk, CallRole.kReceiver);
     }
 
-    //  取消会话(未接通时)
+
+    /**
+     * 取消会话(未接通时)
+     */
     public void cancelCall() {
         sendCancel();
         currentState = CallState.kStable;
-        timerHandler.removeCallbacks(timerRunnable);    // 关闭ring定时器
+        timerHandler.removeCallbacks(timerRunnable);    // 关闭 ring 定时器
         observer.onStateChange(currentState, currentRole, CallCommand.kCancel, currentRole);
     }
 
-    //  结束会话
+
+    /**
+     * 结束会话
+     */
     public void finishCall() {
         sendBye();
         currentState = CallState.kStable;
         observer.onStateChange(currentState, currentRole, CallCommand.kBye, currentRole);
     }
 
+
+    /**
+     * 发送邀请 command
+     */
     private void sendInvite() {
         JSONObject invite = new JSONObject();
         try {
@@ -180,9 +213,11 @@ public class VideoCallProtocol {
         }
     }
 
+
     private void sendMessage(JSONObject msg) {
         observer.sendMessage(msg.toString());
     }
+
 
     public void onMessage(String message) {
         try {
@@ -208,6 +243,7 @@ public class VideoCallProtocol {
         }
     }
 
+
     private void onReceiveInvite() {
         switch (currentState) {
             case kStable: {
@@ -215,17 +251,14 @@ public class VideoCallProtocol {
                 currentState = CallState.kReceiveInviting;
                 sendRing();
                 currentState = CallState.kRinging;
-                // Ring定时器;只由接受方去做此超时判断
-                timerRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        sendTimeout();
-                        currentState = CallState.kStable;
-                        observer.onStateChange(currentState, currentRole, CallCommand.kRequestTimeout, CallRole.kReceiver);
-                    }
+
+                // Ring 定时器;只由接受方去做此超时判断
+                timerRunnable = () -> {
+                    sendTimeout();
+                    currentState = CallState.kStable;
+                    observer.onStateChange(currentState, currentRole, CallCommand.kRequestTimeout, CallRole.kReceiver);
                 };
                 timerHandler.postDelayed(timerRunnable, config.ringTimeout);
-                //
                 observer.onStateChange(currentState, currentRole, CallCommand.kRing, CallRole.kReceiver);
             }
             break;

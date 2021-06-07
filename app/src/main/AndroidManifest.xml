@@ -42,7 +42,7 @@
             android:screenOrientation = "portrait"
             android:theme = "@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name = "com.luqian.videodemo.setting.SettingsActivity"
+            android:name = "com.luqian.videodemo.SettingsActivity"
             android:screenOrientation = "portrait" />
     
     </application>

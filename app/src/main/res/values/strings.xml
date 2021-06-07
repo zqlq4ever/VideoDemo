@@ -1,23 +1,20 @@
 <resources>
     <string name = "app_name">百度云RTC</string>
-    <string name = "baidu_rtc_app_id" translatable = "false">appmf3e64yj79e5</string>
+    <string name = "baidu_rtc_app_id" translatable = "false">appmf6jk9pbkiti</string>
     <string name = "baidu_rtc_token_tmp" translatable = "false">00432ed7ee0a02f4a4e21d22ftoken683fb75c699990atokenfe2c9c3011d51542361360b1b29a0f0000000000</string>
-    <string name = "pref_default_media_server_url" translatable = "false">wss://rtc2.exp.bcelive.com/janus</string>
+    <string name = "sp_default_media_server_url" translatable = "false">wss://rtc2.exp.bcelive.com/janus</string>
     <string name = "sp_default_platform_server_url" translatable = "false">http://14.215.177.105:8910/v2/room/token</string>
-    <string name = "title_welcome">欢迎来到百度云RTC</string>
-    <string name = "title_going">进入房间后开始你的旅程</string>
     
     <!-- 登录相关 -->
-    <string name = "prompt_userid">用户</string>
-    <string name = "prompt_roomid">请输入房间号</string>
+    <string name = "prompt_userid">用户ID</string>
+    <string name = "prompt_roomid">请输入房间号ID</string>
     <string name = "action_sign_in">开始通话</string>
-    <string name = "action_sign_in_short">Sign In</string>
+    <string name = "action_sign_in_short">登录</string>
     <string name = "video_room">聊天室模式</string>
-    <string name = "call_mode">1v1呼叫模式</string>
+    <string name = "call_mode">1v1 呼叫模式</string>
     <string name = "error_invalid_roomid">房间号太短</string>
     <string name = "error_incorrect_roomid">房间号错误</string>
     <string name = "error_field_required">房间号</string>
-    
     <string name = "action_setting">设置</string>
     
     <!-- 通用设置  -->

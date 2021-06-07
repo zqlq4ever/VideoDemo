@@ -40,7 +40,7 @@
             android:layout_weight = "20"
             android:onClick = "onLocalAudioMuteClicked"
             android:scaleType = "centerInside"
-            android:src = "@drawable/btn_mute" />
+            android:src = "@drawable/ic_mute_voice" />
         
         <ImageView
             android:layout_width = "0dp"
@@ -48,10 +48,10 @@
             android:layout_weight = "20"
             android:onClick = "onSpeakerClicked"
             android:scaleType = "centerInside"
-            android:src = "@drawable/btn_speaker" />
+            android:src = "@drawable/ic_speaker" />
         
         <ImageView
-            android:id = "@+id/call_imageview"
+            android:id = "@+id/iv_call"
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
@@ -73,7 +73,7 @@
             android:layout_weight = "20"
             android:onClick = "onSwitchCameraClicked"
             android:scaleType = "centerInside"
-            android:src = "@drawable/btn_switch_camera" />
+            android:src = "@drawable/ic_switch_camera" />
     
     </LinearLayout>
 

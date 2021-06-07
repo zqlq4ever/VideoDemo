@@ -9,7 +9,7 @@
         android:title = "@string/pref_title_display_name" />
     
     <EditTextPreference
-        android:defaultValue = "@string/pref_default_media_server_url"
+        android:defaultValue = "@string/sp_default_media_server_url"
         android:inputType = "text"
         android:key = "key_media_server_url"
         android:maxLines = "1"

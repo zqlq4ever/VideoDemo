@@ -32,6 +32,7 @@
                 android:id = "@+id/userid"
                 android:layout_width = "match_parent"
                 android:layout_height = "wrap_content"
+                android:layout_margin = "10dp"
                 android:hint = "@string/prompt_userid"
                 android:inputType = "number"
                 android:maxLines = "1"
@@ -47,10 +48,12 @@
                 android:id = "@+id/roomid"
                 android:layout_width = "match_parent"
                 android:layout_height = "wrap_content"
+                android:layout_margin = "10dp"
                 android:hint = "@string/prompt_roomid"
                 android:imeActionId = "6"
                 android:imeActionLabel = "@string/action_sign_in_short"
                 android:imeOptions = "actionUnspecified"
+                android:inputType = "number"
                 android:maxLines = "1"
                 android:singleLine = "true"
                 android:textColor = "#4D66FE" />
@@ -63,42 +66,37 @@
             android:orientation = "horizontal">
             
             <CheckBox
-                android:id = "@+id/checkbox_videoroom"
+                android:id = "@+id/checkbox_video_room"
                 style = "?android:textAppearanceSmall"
                 android:layout_width = "wrap_content"
                 android:layout_height = "wrap_content"
+                android:layout_margin = "10dp"
                 android:text = "@string/video_room"
-                android:textStyle = "bold" />
+                android:textStyle = "bold"
+                android:visibility = "gone" />
             
             <CheckBox
-                android:id = "@+id/checkbox_callMode"
+                android:id = "@+id/checkbox_call_mode"
                 style = "?android:textAppearanceSmall"
                 android:layout_width = "wrap_content"
                 android:layout_height = "wrap_content"
+                android:layout_margin = "10dp"
                 android:text = "@string/call_mode"
                 android:textStyle = "bold" />
         
         </LinearLayout>
         
         <Button
-            android:id = "@+id/sign_in_button"
+            android:id = "@+id/btn_start_call"
             style = "?android:textAppearanceSmall"
             android:layout_width = "match_parent"
             android:layout_height = "40dp"
+            android:layout_margin = "10dp"
             android:background = "#4D66FE"
             android:text = "@string/action_sign_in"
             android:textColor = "@android:color/background_light"
             android:textStyle = "bold" />
     
     </LinearLayout>
-    
-    <ProgressBar
-        android:id = "@+id/login_progress"
-        style = "?android:attr/progressBarStyleLarge"
-        android:layout_width = "wrap_content"
-        android:layout_height = "wrap_content"
-        android:layout_marginTop = "30dp"
-        android:layout_marginBottom = "8dp"
-        android:visibility = "gone" />
 
 </LinearLayout>
