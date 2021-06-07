@@ -1,6 +1,6 @@
 <resources>
     <string name = "app_name">百度云RTC</string>
-    <string name = "baidu_rtc_app_id" translatable = "false">appmf6jk9pbkiti</string>
+    <string name = "baidu_rtc_app_id" translatable = "false">appmf3e64yj79e5</string>
     <string name = "baidu_rtc_token_tmp" translatable = "false">00432ed7ee0a02f4a4e21d22ftoken683fb75c699990atokenfe2c9c3011d51542361360b1b29a0f0000000000</string>
     <string name = "sp_default_media_server_url" translatable = "false">wss://rtc2.exp.bcelive.com/janus</string>
     <string name = "sp_default_platform_server_url" translatable = "false">http://14.215.177.105:8910/v2/room/token</string>

@@ -45,9 +45,9 @@ public class LoginActivity extends AppCompatActivity {
         int userId = 78657895 + (Build.SERIAL.hashCode() % 100000) + (int) (Math.random() * 10000);
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         mUserDisplayname = sp.getString("user_display_name", getString(R.string.sp_default_user_name));
-        mUserID.setText(Integer.valueOf(sp.getInt("UserID", userId)).toString());
+        mUserID.setText(String.valueOf(sp.getLong("UserID", userId)));
 
-        populateAutoComplete();
+        mayRequestPermissions();
 
         try {
             mEtRoomID.setText(sp.getString("RoomID", "99999999"));
@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPreferences prefs =
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
 
-                prefs.edit().putInt("UserID", Integer.parseInt(mUserID.getText().toString())).commit();
+                prefs.edit().putLong("UserID", Long.parseLong(mUserID.getText().toString())).commit();
 
                 if (mEtRoomID.getText().toString().isEmpty()) {
                     return true;
@@ -75,10 +75,9 @@ public class LoginActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_start_call).setOnClickListener(view -> {
             attemptLogin();
-            SharedPreferences spLogin =
-                    PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+            SharedPreferences spLogin = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
 
-            spLogin.edit().putInt("UserID", Integer.parseInt(mUserID.getText().toString())).commit();
+            spLogin.edit().putLong("UserID", Long.parseLong(mUserID.getText().toString())).commit();
 
             if (mEtRoomID.getText().toString().isEmpty()) {
                 return;
@@ -123,23 +122,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void populateAutoComplete() {
-        if (!mayRequestPermissions()) {
-            return;
-        }
-    }
-
-    private boolean mayRequestPermissions() {
+    private void mayRequestPermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
+            return;
         }
 
         requestPermissions();
-        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            return false;
+        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO);
         }
-        return false;
     }
 
 
@@ -147,12 +138,12 @@ public class LoginActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CAMERA_PERMISSION_ID) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete();
+                mayRequestPermissions();
             }
         }
         if (requestCode == REQUEST_MIC_PERMISSION_ID) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete();
+                mayRequestPermissions();
             }
         }
     }

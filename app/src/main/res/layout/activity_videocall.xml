@@ -49,7 +49,7 @@
             android:onClick = "onSpeakerClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/ic_speaker" />
-        
+    
         <ImageView
             android:id = "@+id/iv_call"
             android:layout_width = "0dp"
@@ -58,7 +58,7 @@
             android:onClick = "onEndCallClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/btn_end_call" />
-        
+    
         <ImageView
             android:layout_width = "0dp"
             android:layout_height = "match_parent"

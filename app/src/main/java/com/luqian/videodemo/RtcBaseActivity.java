@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.StringRes;
+
 import com.baidu.rtc.BaiduRtcRoom;
 import com.baidu.rtc.RtcParameterSettings;
 import com.baidu.rtc.videoroom.R;
@@ -46,7 +48,10 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     private final boolean mIsEnableExternalRender = false;
     //    BaiduRtcRoom.UserList mUserList = null;
     private String mInfo = "error";
-    protected VideoCallProtocol callProtocol = null;
+    protected RtcDelegate rtcDelegate = null;
+    /**
+     * 其他人 ID
+     */
     protected long partnerId = 0;
     protected RtcEventListener eventListener;
 
@@ -190,12 +195,9 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
                         break;
                     }
                 }
-                this.runOnUiThread(() -> {
-                    Toast.makeText(getApplicationContext(),
-                            mInfo,
-                            Toast.LENGTH_SHORT)
-                            .show();
-                    RtcBaseActivity.this.finish();
+                runOnUiThread(() -> {
+                    toast(mInfo);
+                    finish();
                 });
 
                 break;
@@ -257,26 +259,20 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
                 }
                 //  1v1 呼叫模式
                 if (callMode) {
-                    if (callProtocol != null) {
-                        callProtocol.onMessage(extra_info);
+                    if (rtcDelegate != null) {
+                        rtcDelegate.onMessage(extra_info);
                     }
                 }
                 break;
             case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_ATTRIBUTE:
                 Log.e(TAG, "onRoomEventUpdate onUserAttribute id: " + data + " attribute: " + extra_info);
                 break;
+            //  用户加入房间
             case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_JOINED_ROOM:
-                Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + "name: " + extra_info);
+                Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + " name: " + extra_info);
                 partnerId = data;
-            /*if (mIsEnableExternalRender) {
-                mVideoRoom.registerVideoObservers(new BigInteger(Long.toString(data)), new RTCVideoExternalRender(null, 0) {
-                    @Override
-                    public void onFrame(VideoFrame videoFrame) {
-                        Log.d(TAG, "testing ........... ^^ ^^ ** video arrival!");
-                    }
-                });
-            }*/
                 break;
+            //  用户离开房间
             case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_LEAVING_ROOM:
                 Log.e(TAG, "onRoomEventUpdate onUserLeavingRoom id: " + data);
                 break;
@@ -341,7 +337,8 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     /**
      * 开启 或 关闭 声音
      */
-    public void onLocalAudioMuteClicked(ImageView ivVoice) {
+    public void onLocalAudioMuteClicked(View view) {
+        ImageView ivVoice = (ImageView) view;
         if (ivVoice.isSelected()) {
             ivVoice.setSelected(false);
             ivVoice.setImageResource(R.drawable.ic_mute_voice);
@@ -356,7 +353,8 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
     /**
      * 切换前后摄像头
      */
-    public void onSwitchCameraClicked(ImageView ivSwitchCamera) {
+    public void onSwitchCameraClicked(View view) {
+        ImageView ivSwitchCamera = (ImageView) view;
         if (ivSwitchCamera.isSelected()) {
             ivSwitchCamera.setSelected(false);
             ivSwitchCamera.setImageResource(R.drawable.ic_switch_camera);
@@ -382,8 +380,10 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
 
 
     public void onEndCallClicked(View view) {
-        if (callMode)
+        //  1v1 模式不处理
+        if (callMode) {
             return;
+        }
         finish();
     }
 
@@ -460,5 +460,13 @@ public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRo
         public abstract void onRemoteComming(long userId);
 
         public abstract void onRtcRoomEeventLoginOk();
+    }
+
+    protected void toast(@StringRes int resId) {
+        Toast.makeText(getApplicationContext(), resId, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void toast(String msg) {
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }

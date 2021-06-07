@@ -5,7 +5,7 @@ import android.os.Handler;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class VideoCallProtocol {
+public class RtcDelegate {
 
     /**
      * 当前状态
@@ -15,17 +15,23 @@ public class VideoCallProtocol {
      * 当前角色
      */
     private CallRole currentRole = CallRole.kSender;
+    /**
+     * 呼叫状态监听
+     */
     private final CallStateObserver observer;
     private final CallConfig config;
-    private final Handler timerHandler;     //  定时器
+    private final Handler timerHandler;
     private Runnable timerRunnable;
 
+    /**
+     * 信令控制
+     */
     enum CallCommand {
 
         kInvite(101),   // 发起呼叫
         kRing(102),     // 回复铃响
         kOk(103),       // 回话接通
-        kBye(104),      // 挂断回话
+        kFinish(104),      // 挂断回话
         kCancel(105),   // 取消呼叫
         kRequestTimeout(106),   // 超时无回应
         kBusyHere(107);         // 呼叫正忙
@@ -46,11 +52,11 @@ public class VideoCallProtocol {
      * 呼叫状态
      */
     enum CallState {
-        kStable,
+        kStable,     // 正常状态
         kInviting,   // 发起呼叫中
         kRinging,    // 响铃中
         kCalling,    // 通话中
-        kReceiveInviting,
+        kReceiveInviting,   //  收到通话邀请
     }
 
 
@@ -82,7 +88,7 @@ public class VideoCallProtocol {
     }
 
 
-    public VideoCallProtocol(CallStateObserver observer, CallConfig config) {
+    public RtcDelegate(CallStateObserver observer, CallConfig config) {
         this.observer = observer;
         this.config = config;
         timerHandler = new Handler();
@@ -134,9 +140,9 @@ public class VideoCallProtocol {
      * 结束会话
      */
     public void finishCall() {
-        sendBye();
+        sendFinish();
         currentState = CallState.kStable;
-        observer.onStateChange(currentState, currentRole, CallCommand.kBye, currentRole);
+        observer.onStateChange(currentState, currentRole, CallCommand.kFinish, currentRole);
     }
 
 
@@ -173,10 +179,10 @@ public class VideoCallProtocol {
         }
     }
 
-    private void sendBye() {
+    private void sendFinish() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kBye.getValue());
+            invite.putOpt("command", CallCommand.kFinish.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -229,7 +235,7 @@ public class VideoCallProtocol {
                 onReceiveRing();
             } else if (command == CallCommand.kOk.getValue()) {
                 onReceiveOk();
-            } else if (command == CallCommand.kBye.getValue()) {
+            } else if (command == CallCommand.kFinish.getValue()) {
                 onReceiveBye();
             } else if (command == CallCommand.kCancel.getValue()) {
                 onReceiveCancel();
@@ -244,6 +250,9 @@ public class VideoCallProtocol {
     }
 
 
+    /**
+     * 接收到通话邀请
+     */
     private void onReceiveInvite() {
         switch (currentState) {
             case kStable: {
@@ -266,6 +275,7 @@ public class VideoCallProtocol {
                 sendBusyHere();
         }
     }
+
 
     private void onReceiveRing() {
         switch (currentState) {
@@ -295,7 +305,7 @@ public class VideoCallProtocol {
             case kCalling:
                 currentState = CallState.kStable;
                 observer.onStateChange(currentState, currentRole,
-                        CallCommand.kBye, currentRole == CallRole.kSender ? CallRole.kReceiver : CallRole.kSender);
+                        CallCommand.kFinish, currentRole == CallRole.kSender ? CallRole.kReceiver : CallRole.kSender);
                 break;
             default:
                 break;
