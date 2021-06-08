@@ -43,4 +43,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.permissionx.guolindev:permissionx:1.4.0'
     implementation 'com.gyf.immersionbar:immersionbar:3.0.0'
+    implementation 'com.github.li-xiaojun:XPopup:2.3.7'
 }
