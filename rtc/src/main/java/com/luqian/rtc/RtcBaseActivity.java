@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.baidu.rtc.BaiduRtcRoom;
 import com.baidu.rtc.RtcParameterSettings;
 import com.baidu.rtc.videoroom.R;
+import com.elvishew.xlog.XLog;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -33,12 +34,12 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
      */
     protected boolean mCallMode = false;
     protected String mAppId = "";
-    protected String mTokenStr = "";
+    protected String mToken = "";
     protected String mUserId = "";
     protected String mUserName = "";
     protected String mRoomName = "";
     protected String mMediaServer = "";
-    protected String mVideoResolution = "640x480";
+    protected String mVideoResolution = "1280x960";
     boolean mAudioOnly = false;
     boolean mDisableBuildInNs = false;
     boolean mTestDataChannel = false;
@@ -53,14 +54,11 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initData();
         InitRTCRoom();
     }
 
-
-    /**
-     * 初始化 RTC
-     */
-    protected void InitRTCRoom() {
+    private void initData() {
         mAppId = getIntent().getExtras().getString("appid");
         mCallMode = getIntent().getExtras().getBoolean("callMode");
         mUserId = getIntent().getExtras().getString("userid");
@@ -94,21 +92,27 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
         }
 
         //  Token
-        mTokenStr = getString(R.string.baidu_rtc_token_tmp);
+        mToken = getString(R.string.baidu_rtc_token_tmp);
+    }
 
-        Log.i(TAG, "BaiduRTC(BRTC) SDK version is: " + BaiduRtcRoom.version());
 
+    /**
+     * 初始化 RTC
+     */
+    protected void InitRTCRoom() {
+        XLog.i(TAG, "BaiduRTC(BRTC) SDK version is: " + BaiduRtcRoom.version());
         //  token 可以不写，是用户鉴权用的
-        mVideoRoom = BaiduRtcRoom.initWithAppID(this, mAppId, mTokenStr);
-        //  是否打开调试信息
-//        mVideoRoom.setVerbose(true);
-        //  RTC 统计信息上报
-//        mVideoRoom.enableStatsToServer(true,"online");
+        mVideoRoom = BaiduRtcRoom.initWithAppID(this, mAppId, mToken);
+        mVideoRoom.setBaiduRtcRoomDelegate(this);
+
         //  是否开启音频噪声抑制
         mVideoRoom.enableAns(mDisableBuildInNs);
-        mVideoRoom.setBaiduRtcRoomDelegate(this);
         //  设置服务器地址
         mVideoRoom.setMediaServerURL(mMediaServer);
+        //  是否打开调试信息
+        BaiduRtcRoom.setVerbose(true);
+        //  RTC 统计信息上报
+        mVideoRoom.enableStatsToServer(true, "online");
 
         String rtmp_url = getIntent().getExtras().getString("rtmp_url");
         boolean rtmp_mix = getIntent().getExtras().getBoolean("rtmp_mix");
@@ -257,17 +261,17 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
 
     @Override
     public void onErrorInfoUpdate(int errorInfo) {
-
+        XLog.e("onErrorInfoUpdate", errorInfo);
     }
 
     @Override
     public void onEngineStatisticsInfo(int statistics) {
-
+        XLog.e("onEngineStatisticsInfo:", statistics);
     }
 
     @Override
     public void onRoomDataMessage(ByteBuffer data) {
-        Log.i(TAG, "onRoomDataMessage : " + Charset.defaultCharset().decode(data).toString());
+        XLog.i(TAG, "onRoomDataMessage : " + Charset.defaultCharset().decode(data).toString());
     }
 
 

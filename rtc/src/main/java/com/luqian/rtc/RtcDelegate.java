@@ -10,11 +10,11 @@ public class RtcDelegate {
     /**
      * 当前状态
      */
-    private CallState currentState = CallState.kStable;
+    private CallState currentState = CallState.STABLE;
     /**
      * 当前角色
      */
-    private CallRole currentRole = CallRole.kSender;
+    private CallRole currentRole = CallRole.SENDER;
     /**
      * 呼叫状态监听
      */
@@ -28,13 +28,13 @@ public class RtcDelegate {
      */
     enum CallCommand {
 
-        kInvite(101),   // 发起呼叫
-        kRing(102),     // 回复铃响
-        kOk(103),       // 回话接通
-        kFinish(104),   // 挂断回话
-        kCancel(105),   // 取消呼叫
-        kRequestTimeout(106),   // 超时无回应
-        kBusyHere(107);         // 呼叫正忙
+        INVITE(101),   // 发起呼叫
+        RING(102),     // 回复铃响
+        OK(103),       // 回话接通
+        FINISH(104),   // 挂断回话
+        CANCEL(105),   // 取消呼叫
+        REQUEST_TIMEOUT(106),   // 超时无回应
+        BUSY_HERE(107);         // 呼叫正忙
 
         private final int value;
 
@@ -52,11 +52,11 @@ public class RtcDelegate {
      * 定义呼叫状态
      */
     enum CallState {
-        kStable,     // 正常状态
-        kInviting,   // 发起呼叫中
-        kRinging,    // 响铃中
-        kCalling,    // 通话中
-        kReceiveInviting,   //  收到通话邀请
+        STABLE,     // 正常状态
+        INVITING,   // 发起呼叫中
+        RINGING,    // 响铃中
+        CALLING,    // 通话中
+        RECEIVE_INVITING,   //  收到通话邀请
     }
 
 
@@ -64,8 +64,8 @@ public class RtcDelegate {
      * 呼叫角色：发送方、接收方
      */
     enum CallRole {
-        kSender,
-        kReceiver,
+        SENDER,
+        RECEIVER,
     }
 
 
@@ -104,12 +104,12 @@ public class RtcDelegate {
      */
     public void startCall() {
         sendInvite();
-        currentState = CallState.kInviting;
-        currentRole = CallRole.kSender;
+        currentState = CallState.INVITING;
+        currentRole = CallRole.SENDER;
 
         timerRunnable = () -> {
-            currentState = CallState.kStable;
-            observer.onStateChange(currentState, currentRole, CallCommand.kRequestTimeout, CallRole.kSender);
+            currentState = CallState.STABLE;
+            observer.onStateChange(currentState, currentRole, CallCommand.REQUEST_TIMEOUT, CallRole.SENDER);
         };
         timerHandler.postDelayed(timerRunnable, config.invitTimeout);
     }
@@ -118,10 +118,10 @@ public class RtcDelegate {
      * 接收会话
      */
     public void receiveCall() {
-        currentState = CallState.kCalling;
+        currentState = CallState.CALLING;
         timerHandler.removeCallbacks(timerRunnable);   // 关闭 ring 定时器
         sendOk();
-        observer.onStateChange(currentState, currentRole, CallCommand.kOk, CallRole.kReceiver);
+        observer.onStateChange(currentState, currentRole, CallCommand.OK, CallRole.RECEIVER);
     }
 
 
@@ -130,9 +130,9 @@ public class RtcDelegate {
      */
     public void cancelCall() {
         sendCancel();
-        currentState = CallState.kStable;
+        currentState = CallState.STABLE;
         timerHandler.removeCallbacks(timerRunnable);    // 关闭 ring 定时器
-        observer.onStateChange(currentState, currentRole, CallCommand.kCancel, currentRole);
+        observer.onStateChange(currentState, currentRole, CallCommand.CANCEL, currentRole);
     }
 
 
@@ -141,8 +141,8 @@ public class RtcDelegate {
      */
     public void finishCall() {
         sendFinish();
-        currentState = CallState.kStable;
-        observer.onStateChange(currentState, currentRole, CallCommand.kFinish, currentRole);
+        currentState = CallState.STABLE;
+        observer.onStateChange(currentState, currentRole, CallCommand.FINISH, currentRole);
     }
 
 
@@ -152,7 +152,7 @@ public class RtcDelegate {
     private void sendInvite() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kInvite.getValue());
+            invite.putOpt("command", CallCommand.INVITE.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -162,7 +162,7 @@ public class RtcDelegate {
     private void sendRing() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kRing.getValue());
+            invite.putOpt("command", CallCommand.RING.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -172,7 +172,7 @@ public class RtcDelegate {
     private void sendOk() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kOk.getValue());
+            invite.putOpt("command", CallCommand.OK.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -182,7 +182,7 @@ public class RtcDelegate {
     private void sendFinish() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kFinish.getValue());
+            invite.putOpt("command", CallCommand.FINISH.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -192,7 +192,7 @@ public class RtcDelegate {
     private void sendCancel() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kCancel.getValue());
+            invite.putOpt("command", CallCommand.CANCEL.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -202,7 +202,7 @@ public class RtcDelegate {
     private void sendBusyHere() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kBusyHere.getValue());
+            invite.putOpt("command", CallCommand.BUSY_HERE.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -212,7 +212,7 @@ public class RtcDelegate {
     private void sendTimeout() {
         JSONObject invite = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.kRequestTimeout.getValue());
+            invite.putOpt("command", CallCommand.REQUEST_TIMEOUT.getValue());
             sendMessage(invite);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -235,19 +235,19 @@ public class RtcDelegate {
         try {
             JSONObject obj = new JSONObject(message);
             int command = obj.optInt("command");
-            if (command == CallCommand.kInvite.getValue()) {
+            if (command == CallCommand.INVITE.getValue()) {
                 onReceiveInvite();
-            } else if (command == CallCommand.kRing.getValue()) {
+            } else if (command == CallCommand.RING.getValue()) {
                 onReceiveRing();
-            } else if (command == CallCommand.kOk.getValue()) {
+            } else if (command == CallCommand.OK.getValue()) {
                 onReceiveOk();
-            } else if (command == CallCommand.kFinish.getValue()) {
+            } else if (command == CallCommand.FINISH.getValue()) {
                 onReceiveFinish();
-            } else if (command == CallCommand.kCancel.getValue()) {
+            } else if (command == CallCommand.CANCEL.getValue()) {
                 onReceiveCancel();
-            } else if (command == CallCommand.kBusyHere.getValue()) {
+            } else if (command == CallCommand.BUSY_HERE.getValue()) {
                 onReceiveBusyHere();
-            } else if (command == CallCommand.kRequestTimeout.getValue()) {
+            } else if (command == CallCommand.REQUEST_TIMEOUT.getValue()) {
                 onReceiveRequestTimeout();
             }
         } catch (JSONException e) {
@@ -261,28 +261,28 @@ public class RtcDelegate {
      */
     private void onReceiveInvite() {
         switch (currentState) {
-            case kStable: {
-                currentRole = CallRole.kReceiver;
-                currentState = CallState.kReceiveInviting;
+            case STABLE: {
+                currentRole = CallRole.RECEIVER;
+                currentState = CallState.RECEIVE_INVITING;
                 sendRing();
-                currentState = CallState.kRinging;
+                currentState = CallState.RINGING;
 
                 // Ring 定时器;只由接受方去做此超时判断
                 timerRunnable = () -> {
                     sendTimeout();
-                    currentState = CallState.kStable;
+                    currentState = CallState.STABLE;
                     observer.onStateChange(
                             currentState,
                             currentRole,
-                            CallCommand.kRequestTimeout,
-                            CallRole.kReceiver);
+                            CallCommand.REQUEST_TIMEOUT,
+                            CallRole.RECEIVER);
                 };
                 timerHandler.postDelayed(timerRunnable, config.ringTimeout);
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kRing,
-                        CallRole.kReceiver);
+                        CallCommand.RING,
+                        CallRole.RECEIVER);
             }
             break;
             default:
@@ -293,14 +293,14 @@ public class RtcDelegate {
 
     private void onReceiveRing() {
         switch (currentState) {
-            case kInviting:
-                currentState = CallState.kRinging;
+            case INVITING:
+                currentState = CallState.RINGING;
                 timerHandler.removeCallbacks(timerRunnable);    //  关闭超时定时器
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kRing,
-                        CallRole.kReceiver);
+                        CallCommand.RING,
+                        CallRole.RECEIVER);
                 break;
             default:
                 break;
@@ -309,13 +309,13 @@ public class RtcDelegate {
 
     private void onReceiveOk() {
         switch (currentState) {
-            case kRinging:
-                currentState = CallState.kCalling;
+            case RINGING:
+                currentState = CallState.CALLING;
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kOk,
-                        CallRole.kReceiver);
+                        CallCommand.OK,
+                        CallRole.RECEIVER);
                 break;
             default:
                 break;
@@ -324,13 +324,13 @@ public class RtcDelegate {
 
     private void onReceiveFinish() {
         switch (currentState) {
-            case kCalling:
-                currentState = CallState.kStable;
+            case CALLING:
+                currentState = CallState.STABLE;
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kFinish,
-                        currentRole == CallRole.kSender ? CallRole.kReceiver : CallRole.kSender);
+                        CallCommand.FINISH,
+                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
                 break;
             default:
                 break;
@@ -339,29 +339,29 @@ public class RtcDelegate {
 
     private void onReceiveCancel() {
         switch (currentState) {
-            case kRinging:
-                if (currentRole == CallRole.kReceiver) {
+            case RINGING:
+                if (currentRole == CallRole.RECEIVER) {
                     timerHandler.removeCallbacks(timerRunnable);    //  关闭ring定时器
                 }
-                currentState = CallState.kStable;
+                currentState = CallState.STABLE;
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kCancel,
-                        currentRole == CallRole.kSender ? CallRole.kReceiver : CallRole.kSender);
+                        CallCommand.CANCEL,
+                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
                 break;
         }
     }
 
     private void onReceiveBusyHere() {
         switch (currentState) {
-            case kInviting:
-                currentState = CallState.kStable;
+            case INVITING:
+                currentState = CallState.STABLE;
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kBusyHere,
-                        currentRole == CallRole.kSender ? CallRole.kReceiver : CallRole.kSender);
+                        CallCommand.BUSY_HERE,
+                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
                 break;
             default:
                 break;
@@ -370,13 +370,13 @@ public class RtcDelegate {
 
     private void onReceiveRequestTimeout() {
         switch (currentState) {
-            case kRinging:
-                currentState = CallState.kStable;
+            case RINGING:
+                currentState = CallState.STABLE;
                 observer.onStateChange(
                         currentState,
                         currentRole,
-                        CallCommand.kRequestTimeout,
-                        CallRole.kReceiver);
+                        CallCommand.REQUEST_TIMEOUT,
+                        CallRole.RECEIVER);
                 break;
             default:
                 break;

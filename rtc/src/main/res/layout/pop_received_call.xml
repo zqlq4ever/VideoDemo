@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.ruffian.library.widget.RConstraintLayout
+    xmlns:android = "http://schemas.android.com/apk/res/android"
+    xmlns:app = "http://schemas.android.com/apk/res-auto"
+    android:layout_width = "match_parent"
+    android:layout_height = "wrap_content"
+    app:background_normal = "@android:color/white"
+    app:corner_radius = "16dp">
+    
+    <TextView
+        android:id = "@+id/tv_title"
+        android:layout_width = "0dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop = "20dp"
+        android:gravity = "center"
+        android:text = "@string/receive_call"
+        android:textColor = "@color/black"
+        android:textSize = "24sp"
+        app:layout_constraintEnd_toEndOf = "parent"
+        app:layout_constraintStart_toStartOf = "parent"
+        app:layout_constraintTop_toTopOf = "parent" />
+    
+    <TextView
+        android:id = "@+id/tv_content"
+        android:layout_width = "0dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop = "20dp"
+        android:gravity = "center"
+        android:padding = "8dp"
+        android:text = "@string/make_sure_accept_call"
+        android:textSize = "18sp"
+        app:layout_constraintEnd_toEndOf = "parent"
+        app:layout_constraintStart_toStartOf = "parent"
+        app:layout_constraintTop_toBottomOf = "@id/tv_title" />
+    
+    <com.ruffian.library.widget.RTextView
+        android:id = "@+id/tv_cancel"
+        android:layout_width = "0dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop = "16dp"
+        android:gravity = "center"
+        android:padding = "12dp"
+        android:text = "拒绝"
+        android:textSize = "24sp"
+        app:corner_radius_bottom_left = "16dp"
+        app:layout_constraintEnd_toStartOf = "@id/tv_receive"
+        app:layout_constraintHorizontal_bias = "0.0"
+        app:layout_constraintStart_toStartOf = "parent"
+        app:layout_constraintTop_toBottomOf = "@id/tv_content"
+        app:ripple = "true"
+        app:ripple_color = "#FF3030"
+        app:text_color_normal = "#FF3030"
+        app:text_color_pressed = "@color/_xpopup_white_color" />
+    
+    <com.ruffian.library.widget.RTextView
+        android:id = "@+id/tv_receive"
+        android:layout_width = "0dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop = "16dp"
+        android:gravity = "center"
+        android:padding = "12dp"
+        android:text = "接听"
+        android:textSize = "24sp"
+        app:corner_radius_bottom_right = "16dp"
+        app:layout_constraintEnd_toEndOf = "parent"
+        app:layout_constraintHorizontal_bias = "0.0"
+        app:layout_constraintStart_toEndOf = "@id/tv_cancel"
+        app:layout_constraintTop_toBottomOf = "@id/tv_content"
+        app:ripple = "true"
+        app:ripple_color = "#2E8B57"
+        app:text_color_normal = "#2E8B57"
+        app:text_color_pressed = "@color/_xpopup_white_color" />
+
+</com.ruffian.library.widget.RConstraintLayout>

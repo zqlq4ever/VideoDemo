@@ -22,7 +22,7 @@
         android:theme = "@style/Theme.AppCompat.Light.NoActionBar">
         
         <activity
-            android:name = "com.luqian.rtc.VideoCallActivity"
+            android:name = "com.luqian.rtc.VideoActivity"
             android:screenOrientation = "portrait" />
         
         <!--适配华为（huawei）刘海屏-->

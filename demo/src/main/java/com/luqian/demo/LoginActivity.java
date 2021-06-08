@@ -18,7 +18,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.rtc.VideoCallActivity;
+import com.luqian.rtc.VideoActivity;
 import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")
@@ -28,7 +28,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private AutoCompleteTextView mUserID;
     private EditText mEtRoomID;
-    private CheckBox mVideoRoomCheckbox;
     private CheckBox mCallModeCheckbox;
     private String mUserDisplayname;
 
@@ -75,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         });
 
-        findViewById(R.id.btn_start_call).setOnClickListener(view -> {
+        findViewById(R.id.btn_login_rtc).setOnClickListener(view -> {
             attemptLogin();
             SharedPreferences spLogin = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
 
@@ -93,23 +92,8 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
-        mVideoRoomCheckbox.setChecked(sp.getBoolean("video_room_checked", false));
-        mVideoRoomCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                if (mCallModeCheckbox != null) {
-                    mCallModeCheckbox.setChecked(false);
-                }
-            }
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-            prefs.edit().putBoolean("video_room_checked", isChecked).commit();
-        });
-
         mCallModeCheckbox.setChecked(sp.getBoolean("call_mode_checked", false));
         mCallModeCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                mVideoRoomCheckbox.setChecked(false);
-            }
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
             prefs.edit().putBoolean("call_mode_checked", isChecked).commit();
         });
@@ -119,7 +103,6 @@ public class LoginActivity extends AppCompatActivity {
     private void initView() {
         mUserID = findViewById(R.id.userid);
         mEtRoomID = findViewById(R.id.roomid);
-        mVideoRoomCheckbox = findViewById(R.id.checkbox_video_room);
         mCallModeCheckbox = findViewById(R.id.checkbox_call_mode);
     }
 
@@ -146,11 +129,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * 尝试登录指定的帐户。
-     * 如果存在表单错误（无效的名字、缺少字段等）
-     * 出现错误并且没有进行实际的登录尝试。
-     */
     private void attemptLogin() {
         // UI 重置
         mUserID.setError(null);
@@ -191,8 +169,7 @@ public class LoginActivity extends AppCompatActivity {
      * @param roomId 房间 ID
      */
     private void toVideoPage(String userId, String roomId) {
-        Intent intent = new Intent(
-                LoginActivity.this, VideoCallActivity.class);
+        Intent intent = new Intent(LoginActivity.this, VideoActivity.class);
 
         intent.putExtra("callMode", mCallModeCheckbox.isChecked());
         intent.putExtra("userid", userId);

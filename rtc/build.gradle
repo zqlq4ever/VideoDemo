@@ -44,4 +44,5 @@ dependencies {
     api 'com.gyf.immersionbar:immersionbar:3.0.0'
     api 'com.github.li-xiaojun:XPopup:2.3.7'
     api 'com.github.RuffianZhong:RWidgetHelper:androidx.v0.0.1'
+    api 'com.elvishew:xlog:1.9.0'
 }

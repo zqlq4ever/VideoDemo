@@ -8,7 +8,7 @@
     <!-- 登录相关 -->
     <string name = "prompt_userid">用户ID</string>
     <string name = "prompt_roomid">请输入房间号ID</string>
-    <string name = "action_sign_in">开始通话</string>
+    <string name = "action_sign_in">登录 RTC</string>
     <string name = "action_sign_in_short">登录</string>
     <string name = "video_room">聊天室模式</string>
     <string name = "call_mode">1v1 呼叫模式</string>
@@ -32,12 +32,12 @@
         <item>352x288</item>
         <item>480x360</item>
         <item>640x480</item>
-        <item>960x️540</item>
+        <item>960x540</item>
         <item>1024x768</item>
         <item>1280x720</item>
         <item>1280x960</item>
         <item>1920x1080</item>
-        <item>2592x️1936</item>
+        <item>2592x1936</item>
         <item>3264x2448</item>
     </string-array>
     
@@ -46,12 +46,12 @@
         <item>352x288</item>
         <item>480x360</item>
         <item>640x480</item>
-        <item>960x️540</item>
+        <item>960x540</item>
         <item>1024x768</item>
         <item>1280x720</item>
         <item>1280x960</item>
         <item>1920x1080</item>
-        <item>2592x️1936</item>
+        <item>2592x1936</item>
         <item>3264x2448</item>
     </string-array>
     
