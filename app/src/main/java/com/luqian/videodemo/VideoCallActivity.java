@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 
 import com.baidu.rtc.videoroom.R;
+import com.gyf.immersionbar.ImmersionBar;
 
 /**
  * 1 v 1 音视频
@@ -18,6 +19,8 @@ public class VideoCallActivity extends RtcBaseActivity implements RtcDelegate.Ca
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ImmersionBar.with(this).init();
+
         RtcDelegate.CallConfig config = new RtcDelegate.CallConfig();
         rtcDelegate = new RtcDelegate(this, config);
         setContentView(R.layout.activity_videocall);

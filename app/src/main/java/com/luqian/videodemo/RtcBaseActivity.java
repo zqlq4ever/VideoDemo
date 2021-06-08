@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.baidu.rtc.BaiduRtcRoom;
 import com.baidu.rtc.RtcParameterSettings;
@@ -24,7 +25,7 @@ import java.util.BitSet;
 /**
  * RTC 基类页面
  */
-public class RtcBaseActivity extends Activity implements BaiduRtcRoom.BaiduRtcRoomDelegate {
+public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.BaiduRtcRoomDelegate {
 
     private static final String TAG = "RtcBaseActivity";
 

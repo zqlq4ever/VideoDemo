@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,11 +13,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.baidu.rtc.videoroom.R;
+import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")
 public class LoginActivity extends AppCompatActivity {
@@ -47,8 +47,6 @@ public class LoginActivity extends AppCompatActivity {
         mUserDisplayname = sp.getString("user_display_name", getString(R.string.sp_default_user_name));
         mUserID.setText(String.valueOf(sp.getLong("UserID", userId)));
 
-        mayRequestPermissions();
-
         try {
             mEtRoomID.setText(sp.getString("RoomID", "99999999"));
         } catch (Exception e) {
@@ -59,8 +57,7 @@ public class LoginActivity extends AppCompatActivity {
         mEtRoomID.setOnEditorActionListener((textView, id, keyEvent) -> {
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
                 attemptLogin();
-                SharedPreferences prefs =
-                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
 
                 prefs.edit().putLong("UserID", Long.parseLong(mUserID.getText().toString())).commit();
 
@@ -122,48 +119,25 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void mayRequestPermissions() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return;
-        }
-
-        requestPermissions();
-        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            checkSelfPermission(Manifest.permission.RECORD_AUDIO);
-        }
-    }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION_ID) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mayRequestPermissions();
-            }
-        }
-        if (requestCode == REQUEST_MIC_PERMISSION_ID) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mayRequestPermissions();
-            }
-        }
-    }
-
-
     /**
      * 权限请求：相机和麦克风
      */
-    private void requestPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                this.requestPermissions(
-                        new String[]{Manifest.permission.CAMERA},
-                        REQUEST_CAMERA_PERMISSION_ID);
-            } else if (this.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                this.requestPermissions(
-                        new String[]{Manifest.permission.RECORD_AUDIO},
-                        REQUEST_MIC_PERMISSION_ID);
-            }
-        }
+    private void requestPer(String userId, String roomId) {
+        PermissionX.init(this)
+                .permissions(
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.CAMERA)
+                .onForwardToSettings((scope, deniedList) ->
+                        scope.showForwardToSettingsDialog(deniedList,
+                                "请在设置中开启授权",
+                                "去设置权限"))
+                .request((allGranted, grantedList, deniedList) -> {
+                    if (allGranted) {
+                        toVideoPage(userId, roomId);
+                    } else {
+                        Toast.makeText(this, "请先授权", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
@@ -200,7 +174,7 @@ public class LoginActivity extends AppCompatActivity {
                 focusView.requestFocus();
             }
         } else {
-            toVideoPage(userId, roomId);
+            requestPer(userId, roomId);
         }
     }
 
