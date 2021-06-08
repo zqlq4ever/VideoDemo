@@ -1,6 +1,7 @@
 package com.luqian.rtc;
 
 import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -29,6 +30,7 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
 
     protected ImageView mIvCall;
     protected BaiduRtcRoom mVideoRoom;
+    private MediaPlayer mPlayer = null;
     /**
      * 是否 1v1 呼叫
      */
@@ -138,8 +140,23 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
     protected void onDestroy() {
         mVideoRoom.logoutRtcRoom();
         mVideoRoom.destroy();
+        stopMusic();
         super.onDestroy();
     }
+
+
+    public void playMusic() {
+        mPlayer = MediaPlayer.create(this, R.raw.miui);
+        mPlayer.setLooping(true);
+        mPlayer.start();
+    }
+
+    public void stopMusic() {
+        if (mPlayer != null && mPlayer.isPlaying()) {
+            mPlayer.stop();
+        }
+    }
+
 
     @Override
     public void onRoomEventUpdate(int roomEvents, long data, String extra_info) {

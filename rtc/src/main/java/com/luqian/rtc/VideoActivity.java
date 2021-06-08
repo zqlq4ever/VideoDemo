@@ -71,6 +71,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
     private void showCallPop() {
         dismissCall();
+        playMusic();
         if (mCallPop == null) {
             mCallPop = (CallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -85,6 +86,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
     private void showReceivePop() {
         dismissCall();
+        playMusic();
         if (mReceivedCallPop == null) {
             mReceivedCallPop = (ReceivedCallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -101,12 +103,14 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
         if (mCallPop != null && mCallPop.isShow()) {
             mCallPop.dismiss();
         }
+        stopMusic();
     }
 
     public void dismissReceive() {
         if (mReceivedCallPop != null && mReceivedCallPop.isShow()) {
             mReceivedCallPop.dismiss();
         }
+        stopMusic();
     }
 
 

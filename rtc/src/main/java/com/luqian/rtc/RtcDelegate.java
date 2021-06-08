@@ -5,6 +5,9 @@ import android.os.Handler;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * RTC 代理类
+ */
 public class RtcDelegate {
 
     /**
@@ -83,8 +86,8 @@ public class RtcDelegate {
      * 呼叫配置
      */
     public static class CallConfig {
-        public int invitTimeout = 5_000;    // invite 发起呼叫超时时间
-        public int ringTimeout = 10_000;    // ring 超时时间
+        public int invitTimeout = 15_000;    // invite 发起呼叫超时时间
+        public int ringTimeout = 15_000;    // ring 超时时间
     }
 
 
