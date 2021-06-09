@@ -38,7 +38,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
         if (mCallMode) {
             mIvCall.setImageResource(R.drawable.ic_start_call);
             mIvCall.setOnClickListener(view -> {
-                if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.STABLE) {
+                if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.NORMAL) {
                     rtcDelegate.startCall();
                     mIvCall.setImageResource(R.drawable.btn_end_call);
 
@@ -144,7 +144,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                               RtcDelegate.CallRole commandSource) {
 
         runOnUiThread(() -> {
-            XLog.d(currentState.toString());
+            XLog.d("onStateChange", currentState.toString());
 
             //  指令是自己发出
             boolean commandFromMe = role == commandSource;
@@ -157,7 +157,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
             //  不同呼叫状态做处理
             switch (currentState) {
-                case STABLE:
+                case NORMAL:
                     if (commandFromMe && command == RtcDelegate.CallCommand.CANCEL) {
                         if (isSender) {
                             dismissCall();

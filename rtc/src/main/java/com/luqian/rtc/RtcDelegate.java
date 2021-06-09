@@ -13,7 +13,7 @@ public class RtcDelegate {
     /**
      * 当前状态
      */
-    private CallState currentState = CallState.STABLE;
+    private CallState currentState = CallState.NORMAL;
     /**
      * 当前角色
      */
@@ -55,7 +55,7 @@ public class RtcDelegate {
      * 定义呼叫状态
      */
     enum CallState {
-        STABLE,     // 正常状态
+        NORMAL,     // 正常状态
         INVITING,   // 发起呼叫中
         RINGING,    // 响铃中
         CALLING,    // 通话中
@@ -117,7 +117,7 @@ public class RtcDelegate {
         currentRole = CallRole.SENDER;
 
         timerRunnable = () -> {
-            currentState = CallState.STABLE;
+            currentState = CallState.NORMAL;
             observer.onStateChange(currentState, currentRole, CallCommand.REQUEST_TIMEOUT, CallRole.SENDER);
         };
         timerHandler.postDelayed(timerRunnable, config.invitTimeout);
@@ -139,7 +139,7 @@ public class RtcDelegate {
      */
     public void cancelCall() {
         sendCancel();
-        currentState = CallState.STABLE;
+        currentState = CallState.NORMAL;
         timerHandler.removeCallbacks(timerRunnable);    // 关闭 ring 定时器
         observer.onStateChange(currentState, currentRole, CallCommand.CANCEL, currentRole);
     }
@@ -150,7 +150,7 @@ public class RtcDelegate {
      */
     public void finishCall() {
         sendFinish();
-        currentState = CallState.STABLE;
+        currentState = CallState.NORMAL;
         observer.onStateChange(currentState, currentRole, CallCommand.FINISH, currentRole);
     }
 
@@ -270,7 +270,7 @@ public class RtcDelegate {
      */
     private void onReceiveInvite() {
         switch (currentState) {
-            case STABLE: {
+            case NORMAL: {
                 currentRole = CallRole.RECEIVER;
                 currentState = CallState.RECEIVE_INVITING;
                 sendRing();
@@ -279,7 +279,7 @@ public class RtcDelegate {
                 // Ring 定时器;只由接受方去做此超时判断
                 timerRunnable = () -> {
                     sendTimeout();
-                    currentState = CallState.STABLE;
+                    currentState = CallState.NORMAL;
                     observer.onStateChange(
                             currentState,
                             currentRole,
@@ -334,7 +334,7 @@ public class RtcDelegate {
     private void onReceiveFinish() {
         switch (currentState) {
             case CALLING:
-                currentState = CallState.STABLE;
+                currentState = CallState.NORMAL;
                 observer.onStateChange(
                         currentState,
                         currentRole,
@@ -352,7 +352,7 @@ public class RtcDelegate {
                 if (currentRole == CallRole.RECEIVER) {
                     timerHandler.removeCallbacks(timerRunnable);    //  关闭ring定时器
                 }
-                currentState = CallState.STABLE;
+                currentState = CallState.NORMAL;
                 observer.onStateChange(
                         currentState,
                         currentRole,
@@ -365,7 +365,7 @@ public class RtcDelegate {
     private void onReceiveBusyHere() {
         switch (currentState) {
             case INVITING:
-                currentState = CallState.STABLE;
+                currentState = CallState.NORMAL;
                 observer.onStateChange(
                         currentState,
                         currentRole,
@@ -380,7 +380,7 @@ public class RtcDelegate {
     private void onReceiveRequestTimeout() {
         switch (currentState) {
             case RINGING:
-                currentState = CallState.STABLE;
+                currentState = CallState.NORMAL;
                 observer.onStateChange(
                         currentState,
                         currentRole,
