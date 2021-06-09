@@ -24,7 +24,7 @@ import java.nio.charset.Charset;
 /**
  * RTC 基类页面
  */
-public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.BaiduRtcRoomDelegate {
+public abstract class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.BaiduRtcRoomDelegate {
 
     private static final String TAG = "RtcBaseActivity";
 
@@ -160,97 +160,98 @@ public class RtcBaseActivity extends AppCompatActivity implements BaiduRtcRoom.B
 
     @Override
     public void onRoomEventUpdate(int roomEvents, long data, String extra_info) {
+        runOnUiThread(() -> {
+            Log.i(TAG, "onRoomEventUpdate is: " + roomEvents);
+            switch (roomEvents) {
+                //  登录房间成功
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_OK:
+                    loginRtcSuccess();
+                    break;
 
-        Log.i(TAG, "onRoomEventUpdate is: " + roomEvents);
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR:
 
-        switch (roomEvents) {
-            //  登录房间成功
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_OK:
-                break;
-
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR:
-
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST:
-                switch (roomEvents) {
-                    case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR: {
-                        mInfo = getString(R.string.login_room_failed);
-                        break;
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST:
+                    switch (roomEvents) {
+                        case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_LOGIN_ERROR: {
+                            mInfo = getString(R.string.login_room_failed);
+                            break;
+                        }
+                        case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST: {
+                            mInfo = getString(R.string.connection_lost);
+                            break;
+                        }
                     }
-                    case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_CONNECTION_LOST: {
-                        mInfo = getString(R.string.connection_lost);
-                        break;
-                    }
-                }
-                runOnUiThread(() -> {
                     toast(mInfo);
                     finish();
-                });
 
-                break;
+                    break;
 
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_COMING:
-                Log.e(TAG, "onRoomEventUpdate : Coming UID " + data + " Display:" + extra_info);
-                break;
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_COMING:
+                    Log.e(TAG, "onRoomEventUpdate : Coming UID " + data + " Display:" + extra_info);
+                    break;
 
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_LEAVING:
-                Log.e(TAG, "onRoomEventUpdate : Leaving UID " + data);
-                break;
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_REMOTE_LEAVING:
+                    Log.e(TAG, "onRoomEventUpdate : Leaving UID " + data);
+                    break;
 
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_AVAILABLE_SEND_BITRATE:
-                Log.e(TAG, "onRoomEventUpdate : Available BitRate: " + data);
-                break;
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_AVAILABLE_SEND_BITRATE:
+                    Log.e(TAG, "onRoomEventUpdate : Available BitRate: " + data);
+                    break;
 
-            //  用户消息
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_MESSAGE:
-                Log.e(TAG, "onRoomEventUpdate onUserMessage id: " + data + " msg: " + extra_info);
+                //  用户消息
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_MESSAGE:
+                    Log.e(TAG, "onRoomEventUpdate onUserMessage id: " + data + " msg: " + extra_info);
 
-                if (extra_info.contains("ping getattribute")) {
-                    mVideoRoom.getUserAttribute(data);
-                }
-                if (extra_info.contains("ping sendmessage")) {
-                    mVideoRoom.sendMessageToUser("hello", 0);
-                }
-                if (extra_info.contains("ping setattribute")) {
-                    mVideoRoom.setUserAttribute("{'name':'jim','tel':'123456789'}");
-                }
-                if (extra_info.contains("ping disabandroom")) {
-                    mVideoRoom.disbandRoom();
-                }
-                if (extra_info.contains("ping shutupuser")) {
-                    mVideoRoom.shutUpUserWithId(123456);
-                }
-                if (extra_info.contains("ping unshutupuser")) {
-                    mVideoRoom.shutUpUserWithId(123456, false);
-                }
-                if (extra_info.contains("ping kickoffuser")) {
-                    mVideoRoom.kickOffUserWithId(123456);
-                }
-                //  1v1 呼叫模式
-                if (mCallMode && rtcDelegate != null) {
-                    //  发送信令
-                    rtcDelegate.onMessage(extra_info);
-                }
-                break;
+                    if (extra_info.contains("ping getattribute")) {
+                        mVideoRoom.getUserAttribute(data);
+                    }
+                    if (extra_info.contains("ping sendmessage")) {
+                        mVideoRoom.sendMessageToUser("hello", 0);
+                    }
+                    if (extra_info.contains("ping setattribute")) {
+                        mVideoRoom.setUserAttribute("{'name':'jim','tel':'123456789'}");
+                    }
+                    if (extra_info.contains("ping disabandroom")) {
+                        mVideoRoom.disbandRoom();
+                    }
+                    if (extra_info.contains("ping shutupuser")) {
+                        mVideoRoom.shutUpUserWithId(123456);
+                    }
+                    if (extra_info.contains("ping unshutupuser")) {
+                        mVideoRoom.shutUpUserWithId(123456, false);
+                    }
+                    if (extra_info.contains("ping kickoffuser")) {
+                        mVideoRoom.kickOffUserWithId(123456);
+                    }
+                    //  1v1 呼叫模式
+                    if (mCallMode && rtcDelegate != null) {
+                        //  发送信令
+                        rtcDelegate.onMessage(extra_info);
+                    }
+                    break;
 
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_ATTRIBUTE:
-                Log.e(TAG, "onRoomEventUpdate onUserAttribute id: " + data + " attribute: " + extra_info);
-                break;
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_ATTRIBUTE:
+                    Log.e(TAG, "onRoomEventUpdate onUserAttribute id: " + data + " attribute: " + extra_info);
+                    break;
 
-            //  用户加入房间
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_JOINED_ROOM:
-                Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + " name: " + extra_info);
-                partnerId = data;
-                break;
+                //  用户加入房间
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_JOINED_ROOM:
+                    Log.e(TAG, "onRoomEventUpdate onUserJoinedRoom id: " + data + " name: " + extra_info);
+                    partnerId = data;
+                    break;
 
-            //  用户离开房间
-            case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_LEAVING_ROOM:
-                Log.e(TAG, "onRoomEventUpdate onUserLeavingRoom id: " + data);
-                if (mCallMode) {
-                    finish();
-                }
-                break;
-        }
+                //  用户离开房间
+                case BaiduRtcRoom.BaiduRtcRoomDelegate.RTC_ROOM_EVENT_ON_USER_LEAVING_ROOM:
+                    Log.e(TAG, "onRoomEventUpdate onUserLeavingRoom id: " + data);
+                    if (mCallMode) {
+                        finish();
+                    }
+                    break;
+            }
+        });
     }
+
+    abstract void loginRtcSuccess();
 
     @Override
     public void onPeerConnectStateUpdate(int connecStates) {

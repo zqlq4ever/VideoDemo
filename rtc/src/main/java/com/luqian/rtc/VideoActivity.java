@@ -1,6 +1,9 @@
 package com.luqian.rtc;
 
 import android.os.Bundle;
+import android.view.View;
+
+import androidx.core.content.ContextCompat;
 
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
@@ -9,6 +12,7 @@ import com.luqian.rtc.widget.dialog.CallPop;
 import com.luqian.rtc.widget.dialog.ReceivedCallPop;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
+import com.lxj.xpopup.impl.LoadingPopupView;
 
 /**
  * 1 v 1 音视频
@@ -19,20 +23,18 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
     private CallPop mCallPop;
     private ReceivedCallPop mReceivedCallPop;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ImmersionBar.with(this)
-                .fitsSystemWindows(true)  //    使用该属性,必须指定状态栏颜色
+                //  使用该属性,必须指定状态栏颜色
+                .fitsSystemWindows(true)
                 .statusBarColor(R.color.black)
                 .init();
-
-        RtcDelegate.CallConfig config = new RtcDelegate.CallConfig();
-        rtcDelegate = new RtcDelegate(this, config);
+        getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.black));
         setContentView(R.layout.activity_video);
-
         mIvCall = findViewById(R.id.iv_call);
+
         if (mCallMode) {
             mIvCall.setImageResource(R.drawable.ic_start_call);
             mIvCall.setOnClickListener(view -> {
@@ -52,10 +54,23 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
             });
         }
 
+        rtcDelegate = new RtcDelegate(this);
+
+        LoadingPopupView loadingPopup = (LoadingPopupView) new XPopup.Builder(this)
+                .dismissOnBackPressed(false)
+                .dismissOnTouchOutside(false)
+                .hasShadowBg(false)
+                .asLoading("加载中")
+                .show();
+        loadingPopup.delayDismissWith(1500L, this::loginRtc);
+    }
+
+
+    @Override
+    void loginRtcSuccess() {
         mVideoRoom.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
         mVideoRoom.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
-
-        loginRtc();
+        findViewById(R.id.root).setVisibility(View.VISIBLE);
     }
 
 
@@ -77,6 +92,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                     .hasStatusBar(false)
                     .hasNavigationBar(false)
                     .dismissOnTouchOutside(false)
+                    .dismissOnBackPressed(false)
                     .popupAnimation(PopupAnimation.NoAnimation)
                     .asCustom(new CallPop(this));
         }
@@ -92,6 +108,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                     .hasStatusBar(false)
                     .hasNavigationBar(false)
                     .dismissOnTouchOutside(false)
+                    .dismissOnBackPressed(false)
                     .popupAnimation(PopupAnimation.NoAnimation)
                     .asCustom(new ReceivedCallPop(this));
         }
@@ -114,61 +131,86 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
     }
 
 
+    /**
+     * @param currentState  当前呼叫状态
+     * @param role          呼叫角色：拨号方 / 接听方
+     * @param command       状态改变原因指令
+     * @param commandSource 指令来源：拨号方发出 / 接听方发出
+     */
     @Override
-    public void onStateChange(RtcDelegate.CallState state,
+    public void onStateChange(RtcDelegate.CallState currentState,
                               RtcDelegate.CallRole role,
-                              RtcDelegate.CallCommand reasonCommand,
+                              RtcDelegate.CallCommand command,
                               RtcDelegate.CallRole commandSource) {
 
         runOnUiThread(() -> {
-            switch (state) {
+            XLog.d(currentState.toString());
+
+            //  指令是自己发出
+            boolean commandFromMe = role == commandSource;
+            //  指令是他人发出
+            boolean commandFromOther = role != commandSource;
+
+            boolean isSender = role == RtcDelegate.CallRole.SENDER;
+
+            boolean isReceive = role == RtcDelegate.CallRole.RECEIVER;
+
+            //  不同呼叫状态做处理
+            switch (currentState) {
                 case STABLE:
-                    if (role == commandSource && reasonCommand == RtcDelegate.CallCommand.CANCEL) {
-                        if (role == RtcDelegate.CallRole.SENDER) {
+                    if (commandFromMe && command == RtcDelegate.CallCommand.CANCEL) {
+                        if (isSender) {
                             dismissCall();
                         } else {
                             dismissReceive();
                         }
                         toast(R.string.canceled_call);
-                    } else if (role != commandSource && reasonCommand == RtcDelegate.CallCommand.CANCEL) {
-                        if (role == RtcDelegate.CallRole.SENDER) {
+                    } else {
+                        if (commandFromOther && command == RtcDelegate.CallCommand.CANCEL) {
+                            if (isSender) {
+                                dismissCall();
+                                toast(R.string.refused_call);
+                            } else {
+                                dismissReceive();
+                                toast(R.string.other_canceled_call);
+                            }
+                        } else if (isSender && command == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
+                            //  发送方，呼叫超时
                             dismissCall();
-                            toast(R.string.refused_call);
-                        } else {
+                            toast(R.string.not_response_end);
+                        } else if (isSender && command == RtcDelegate.CallCommand.BUSY_HERE) {
+                            dismissCall();
+                            toast(R.string.in_call_please_wait);
+                        } else if (commandFromMe && command == RtcDelegate.CallCommand.FINISH) {
+                            toast(R.string.end_call_over);
+                            mVideoRoom.stopPublish();
+                            mVideoRoom.stopSubscribeStreaming(partnerId);
+                        } else if (commandFromOther && command == RtcDelegate.CallCommand.FINISH) {
+                            toast(R.string.other_end_call_over);
+                            mVideoRoom.stopPublish();
+                            mVideoRoom.stopSubscribeStreaming(partnerId);
+                        } else if (isReceive && command == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
                             dismissReceive();
-                            toast(R.string.other_canceled_call);
+                            toast(R.string.timeout_end);
                         }
-                    } else if (role == RtcDelegate.CallRole.SENDER && reasonCommand == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
-                        dismissCall();
-                        toast(R.string.not_response_end);
-                    } else if (role == RtcDelegate.CallRole.SENDER && reasonCommand == RtcDelegate.CallCommand.BUSY_HERE) {
-                        dismissCall();
-                        toast(R.string.in_call_please_wait);
-                    } else if (role == commandSource && reasonCommand == RtcDelegate.CallCommand.FINISH) {
-                        toast(R.string.end_call_over);
-                        mVideoRoom.stopPublish();
-                        mVideoRoom.stopSubscribeStreaming(partnerId);
-                    } else if (role != commandSource && reasonCommand == RtcDelegate.CallCommand.FINISH) {
-                        toast(R.string.other_end_call_over);
-                        mVideoRoom.stopPublish();
-                        mVideoRoom.stopSubscribeStreaming(partnerId);
-                    } else if (role == RtcDelegate.CallRole.RECEIVER && reasonCommand == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
-                        dismissReceive();
-                        toast(R.string.timeout_end);
                     }
                     mIvCall.setImageResource(R.drawable.ic_start_call);
                     break;
                 case INVITING:
                     break;
+                //  响铃
                 case RINGING:
-                    if (role == RtcDelegate.CallRole.RECEIVER) {
+                    //  接收方，弹窗提醒接听
+                    if (isReceive) {
                         onReceiveInvite();
                     } else {
+                        //  拨号方，弹窗
                         mCallPop.setData(getString(R.string.wait_accept));
                     }
                     break;
+                //  通话中
                 case CALLING:
-                    if (role == RtcDelegate.CallRole.SENDER) {
+                    if (isSender) {
                         dismissCall();
                         toast(R.string.accept_establish);
                     } else {

@@ -76,7 +76,13 @@ public class RtcDelegate {
      * 呼叫状态监听
      */
     interface CallStateObserver {
-        void onStateChange(CallState state, CallRole role, CallCommand reasonCommand, CallRole commandSource);
+        /**
+         * @param currentState  当前呼叫状态
+         * @param role          呼叫角色：拨号方 / 接听方
+         * @param command       状态改变原因指令
+         * @param commandSource 指令来源：拨号方发出 / 接听方发出
+         */
+        void onStateChange(CallState currentState, CallRole role, CallCommand command, CallRole commandSource);
 
         void sendMessage(String msg);
     }
@@ -86,14 +92,14 @@ public class RtcDelegate {
      * 呼叫配置
      */
     public static class CallConfig {
-        public int invitTimeout = 15_000;    // invite 发起呼叫超时时间
-        public int ringTimeout = 15_000;    // ring 超时时间
+        public long invitTimeout = 15_000;    // invite 发起呼叫超时时间
+        public long ringTimeout = 15_000;    // ring 超时时间
     }
 
 
-    public RtcDelegate(CallStateObserver observer, CallConfig config) {
+    public RtcDelegate(CallStateObserver observer) {
         this.observer = observer;
-        this.config = config;
+        this.config = new RtcDelegate.CallConfig();
         timerHandler = new Handler();
     }
 

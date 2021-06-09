@@ -23,7 +23,8 @@
         
         <activity
             android:name = "com.luqian.rtc.VideoActivity"
-            android:screenOrientation = "portrait" />
+            android:screenOrientation = "portrait"
+            android:windowSoftInputMode = "stateHidden" />
         
         <!--适配华为（huawei）刘海屏-->
         <meta-data

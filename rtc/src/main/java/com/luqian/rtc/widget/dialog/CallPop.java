@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import com.baidu.rtc.videoroom.R;
 import com.luqian.rtc.VideoActivity;
 import com.lxj.xpopup.core.CenterPopupView;
-import com.lxj.xpopup.util.KeyboardUtils;
 
 /**
  * @author LUQIAN
@@ -46,11 +45,6 @@ public class CallPop extends CenterPopupView {
         mTvContent = findViewById(R.id.tv_content);
     }
 
-    @Override
-    protected void onShow() {
-        super.onShow();
-        KeyboardUtils.hideSoftInput(mTvContent);
-    }
 
     @Override
     public void dismissWith(Runnable runnable) {
