@@ -1,4 +1,4 @@
-package com.luqian.demo;
+package com.luqian.demo.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import androidx.annotation.Nullable;
 
 import com.gyf.immersionbar.ImmersionBar;
+import com.luqian.demo.R;
 
 import java.util.List;
 

@@ -1,17 +1,17 @@
 <preference-headers xmlns:android = "http://schemas.android.com/apk/res/android">
     
     <header
-        android:fragment = "com.luqian.demo.SettingsActivity$GeneralSPFragment"
+        android:fragment = "com.luqian.demo.ui.SettingsActivity$GeneralSPFragment"
         android:icon = "@drawable/ic_info_black_24dp"
         android:title = "@string/sp_header_general" />
     
     <header
-        android:fragment = "com.luqian.demo.SettingsActivity$AudioSPFragment"
+        android:fragment = "com.luqian.demo.ui.SettingsActivity$AudioSPFragment"
         android:icon = "@drawable/ic_audio"
         android:title = "@string/sp_header_audio" />
     
     <header
-        android:fragment = "com.luqian.demo.SettingsActivity$VideoSPFragment"
+        android:fragment = "com.luqian.demo.ui.SettingsActivity$VideoSPFragment"
         android:icon = "@drawable/ic_video"
         android:title = "@string/sp_header_video" />
 

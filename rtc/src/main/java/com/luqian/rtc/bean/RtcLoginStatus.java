@@ -23,6 +23,9 @@ public class RtcLoginStatus {
     }
 
     public String getMsg() {
+        if (msg == null) {
+            msg = "";
+        }
         return msg;
     }
 

@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.baidu.rtc.BaiduRtcRoom;
+import com.baidu.rtc.RTCVideoView;
 import com.baidu.rtc.RtcParameterSettings;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
@@ -50,9 +51,11 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
 
     private static final String TAG = "RtcViewModel";
 
+    private static final String APP_ID = "appmf3e64yj79e5";
+
     private MediaPlayer mPlayer = null;
 
-    public BaiduRtcRoom mBaiduRtcRoom;
+    private BaiduRtcRoom mBaiduRtcRoom;
 
 
     /**
@@ -61,7 +64,7 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     public void InitRTCRoom() {
         XLog.i(TAG, "BaiduRTC(BRTC) SDK version is: " + BaiduRtcRoom.version());
         //  token 可以不写，是用户鉴权用的
-        mBaiduRtcRoom = BaiduRtcRoom.initWithAppID(BaseApp.getApp(), "appmf3e64yj79e5", "");
+        mBaiduRtcRoom = BaiduRtcRoom.initWithAppID(BaseApp.getApp(), APP_ID, "");
         //  rtc 代理
         mBaiduRtcRoom.setBaiduRtcRoomDelegate(this);
         //  是否开启音频噪声抑制
@@ -197,70 +200,83 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
+    /**
+     * 登录 RTC
+     *
+     * @param roomName 房间名
+     * @param userId   用户 ID
+     * @param userName 用户名
+     */
     public void loginRtc(String roomName, long userId, String userName) {
 
-        RtcParameterSettings rtcSetting = RtcParameterSettings.getDefaultSettings();
+        //  RTC 参数配置
+        RtcParameterSettings settings = RtcParameterSettings.getDefaultSettings();
 
         String videoResolution = "1280x960";
-        rtcSetting.VideoResolution = videoResolution;
-
-        rtcSetting.VideoFps = 15;
 
         if (videoResolution.contains("128kbps")) {
-            rtcSetting.VideoMaxkbps = 128;
+            settings.VideoMaxkbps = 128;
         } else if (videoResolution.contains("256kbps")) {
-            rtcSetting.VideoMaxkbps = 256;
+            settings.VideoMaxkbps = 256;
         } else if (videoResolution.contains("350kbps")) {
-            rtcSetting.VideoMaxkbps = 350;
+            settings.VideoMaxkbps = 350;
         } else if (videoResolution.contains("500kbps")) {
-            rtcSetting.VideoMaxkbps = 500;
+            settings.VideoMaxkbps = 500;
         } else if (videoResolution.contains("800kbps")) {
-            rtcSetting.VideoMaxkbps = 800;
+            settings.VideoMaxkbps = 800;
         } else if (videoResolution.contains("1000kbps")) {
-            rtcSetting.VideoMaxkbps = 1000;
+            settings.VideoMaxkbps = 1000;
         } else if (videoResolution.contains("1500kbps")) {
-            rtcSetting.VideoMaxkbps = 1500;
+            settings.VideoMaxkbps = 1500;
         } else if (videoResolution.contains("2000kbps")) {
-            rtcSetting.VideoMaxkbps = 2000;
+            settings.VideoMaxkbps = 2000;
         } else if (videoResolution.contains("3000kbps")) {
-            rtcSetting.VideoMaxkbps = 3000;
+            settings.VideoMaxkbps = 3000;
         } else if (videoResolution.contains("5000kbps")) {
-            rtcSetting.VideoMaxkbps = 5000;
+            settings.VideoMaxkbps = 5000;
         } else if (videoResolution.contains("12000kbps")) {
-            rtcSetting.VideoMaxkbps = 12000;
+            settings.VideoMaxkbps = 12000;
         } else if (videoResolution.contains("40000kbps")) {
-            rtcSetting.VideoMaxkbps = 40000;
+            settings.VideoMaxkbps = 40000;
         } else {
-            rtcSetting.VideoMaxkbps = 1000;
+            settings.VideoMaxkbps = 1000;
         }
 
-        rtcSetting.HasData = false;
+        settings.VideoResolution = videoResolution;
 
-        rtcSetting.HasVideo = false;
+        settings.VideoFps = 15;
 
-        rtcSetting.ConnectionTimeoutMs = 5000;
+        settings.HasData = false;
 
-        rtcSetting.ReadTimeoutMs = 5000;
+        settings.HasVideo = true;
+
+        settings.AutoPublish = false;
+
+        settings.AutoSubScribe = false;
+
+        settings.ConnectionTimeoutMs = 5000;
+
+        settings.ReadTimeoutMs = 5000;
 
         if (Build.MANUFACTURER.contains("Ainemo")
                 || Build.MODEL.contains("NV6001")
                 || Build.MODEL.contains("NV6101")
                 || Build.MODEL.contains("NV2001")
                 || Build.MODEL.contains("NV5001")) {
-            rtcSetting.AudioFrequency = 16000;
-            rtcSetting.AudioChannel = 2;
-            rtcSetting.AudioContentType = AudioAttributes.CONTENT_TYPE_MUSIC;
+            settings.AudioFrequency = 16000;
+            settings.AudioChannel = 2;
+            settings.AudioContentType = AudioAttributes.CONTENT_TYPE_MUSIC;
         }
 
-        rtcSetting.AutoPublish = false;
-        rtcSetting.AutoSubScribe = false;
+        mBaiduRtcRoom.setParamSettings(settings, RtcParameterSettings.RtcParamSettingType.RTC_PARAM_SETTINGS_ALL);
 
-        mBaiduRtcRoom.setParamSettings(rtcSetting, RtcParameterSettings.RtcParamSettingType.RTC_PARAM_SETTINGS_ALL);
         mBaiduRtcRoom.loginRtcRoomWithRoomName(roomName, userId, userName);
-
     }
 
 
+    /**
+     * 播放音乐
+     */
     public void playMusic() {
         mPlayer = MediaPlayer.create(BaseApp.getApp(), R.raw.miui);
         mPlayer.setLooping(true);
@@ -268,6 +284,9 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
+    /**
+     * 停止播放
+     */
     public void stopMusic() {
         if (mPlayer != null && mPlayer.isPlaying()) {
             mPlayer.stop();
@@ -275,20 +294,11 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
-    public void stopPublsh() {
-        if (mUserJoin.getValue() == null) return;
-        mBaiduRtcRoom.stopPublish();
-        mBaiduRtcRoom.stopSubscribeStreaming(mUserJoin.getValue());
-    }
-
-
-    public void startPublsh() {
-        if (mUserJoin.getValue() == null) return;
-        mBaiduRtcRoom.startPublish();
-        mBaiduRtcRoom.subscribeStreaming(0, mUserJoin.getValue());
-    }
-
-
+    /**
+     * 发送信令
+     *
+     * @param msg 自定义信令
+     */
     public void sendMessageToUser(String msg) {
         if (mUserJoin.getValue() == null) return;
         mBaiduRtcRoom.sendMessageToUser(msg, mUserJoin.getValue());
@@ -296,40 +306,119 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
+    /**
+     * 释放播放器
+     */
+    public void releaseMusic() {
+        if (mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+        }
+    }
+
+
+    /**
+     * 停止发布订阅流
+     */
+    public void stopPublsh() {
+        if (mUserJoin.getValue() == null) return;
+        mBaiduRtcRoom.stopPublish();
+        mBaiduRtcRoom.stopSubscribeStreaming(mUserJoin.getValue());
+    }
+
+
+    /**
+     * 开始发布订阅流
+     */
+    public void startPublsh() {
+        if (mUserJoin.getValue() == null) return;
+        mBaiduRtcRoom.startPublish();
+        mBaiduRtcRoom.subscribeStreaming(0, mUserJoin.getValue());
+    }
+
+
+    /**
+     * 开始预览
+     */
     public void startPreview() {
         mBaiduRtcRoom.startPreview();
     }
 
 
+    /**
+     * 停止预览(同时会停止本地流发布)
+     */
     public void stopPreview() {
         mBaiduRtcRoom.stopPreview();
     }
 
 
+    /**
+     * 本地画面
+     */
+    public void setLocalDisplay(RTCVideoView rtcVideoView) {
+        mBaiduRtcRoom.setLocalDisplay(rtcVideoView);
+    }
+
+
+    /**
+     * 远端画面
+     */
+    public void setRemoteDisplay(RTCVideoView rtcVideoView) {
+        mBaiduRtcRoom.setRemoteDisplay(rtcVideoView);
+    }
+
+
+    /**
+     * 关闭摄像头
+     *
+     * @param mute 是否关闭
+     */
     public void muteCamera(boolean mute) {
         mBaiduRtcRoom.muteCamera(mute);
     }
 
 
+    /**
+     * 关闭麦克风
+     *
+     * @param mute 是否关闭
+     */
     public void muteMicphone(boolean mute) {
         mBaiduRtcRoom.muteMicphone(mute);
     }
 
 
+    /**
+     * 切换摄像头
+     */
     public void switchCamera() {
         mBaiduRtcRoom.switchCamera();
     }
 
 
+    /**
+     * 切换听筒 / 扬声器
+     */
     public void switchLoundSpeaker() {
         mBaiduRtcRoom.switchLoundSpeaker();
     }
 
 
-    public void logoutRtcRoom() {
+    /**
+     * RTC 资源销毁
+     */
+    public void releaseRtc() {
         mBaiduRtcRoom.logoutRtcRoom();
         mBaiduRtcRoom.destroy();
         stopMusic();
+        releaseMusic();
     }
 
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        releaseRtc();
+    }
 }

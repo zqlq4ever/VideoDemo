@@ -8,9 +8,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * RTC 代理类
+ * 通话管理
  */
-public class RtcDelegate {
+public class CallManager {
 
     /**
      * 当前状态
@@ -83,9 +83,9 @@ public class RtcDelegate {
     }
 
 
-    public RtcDelegate(CallStateObserver observer) {
+    public CallManager(CallStateObserver observer) {
         this.observer = observer;
-        this.config = new RtcDelegate.CallConfig();
+        this.config = new CallManager.CallConfig();
         timerHandler = new Handler();
     }
 
@@ -219,7 +219,7 @@ public class RtcDelegate {
      * 发送自定义信令消息
      */
     private void sendMessage(JSONObject msg) {
-        observer.sendMessage(msg.toString());
+        observer.sendMessageToUser(msg.toString());
     }
 
 

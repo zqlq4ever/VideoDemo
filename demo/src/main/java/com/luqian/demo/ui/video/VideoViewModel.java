@@ -1,4 +1,4 @@
-package com.luqian.demo;
+package com.luqian.demo.ui.video;
 
 import com.luqian.rtc.RtcViewModel;
 

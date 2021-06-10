@@ -22,7 +22,7 @@
         android:theme = "@style/Theme.AppCompat.Light.NoActionBar">
         
         <activity
-            android:name = "com.luqian.demo.VideoActivity"
+            android:name = "com.luqian.demo.ui.video.VideoActivity"
             android:screenOrientation = "portrait"
             android:windowSoftInputMode = "stateHidden" />
         

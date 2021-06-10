@@ -1,4 +1,4 @@
-package com.luqian.demo;
+package com.luqian.demo.ui.video;
 
 import android.os.Bundle;
 import android.view.View;
@@ -13,16 +13,16 @@ import androidx.lifecycle.ViewModelProvider;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.demo.dialog.CallPop;
-import com.luqian.demo.dialog.ReceivedCallPop;
-import com.luqian.rtc.RtcDelegate;
+import com.luqian.demo.widget.dialog.CallPop;
+import com.luqian.demo.widget.dialog.ReceivedCallPop;
+import com.luqian.rtc.CallManager;
 import com.luqian.rtc.common.CallStateObserver;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
 import com.lxj.xpopup.impl.LoadingPopupView;
 
 /**
- * 1 v 1 音视频
+ * 1 v 1 音视频通话
  */
 public class VideoActivity extends AppCompatActivity implements CallStateObserver {
 
@@ -31,7 +31,8 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     private ReceivedCallPop mReceivedCallPop;
     private ImageView mIvCall;
     public VideoViewModel mViewModel;
-    public RtcDelegate rtcDelegate;
+    public CallManager mCallManager;
+    private LoadingPopupView mLoadingPopup;
 
 
     @Override
@@ -56,64 +57,75 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
         mIvCall.setImageResource(R.drawable.ic_start_call);
         mIvCall.setOnClickListener(view -> {
-            if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.NORMAL) {
-                rtcDelegate.startCall();
+            if (mCallManager.getCurrentState() == CallManager.CallState.NORMAL) {
+                mCallManager.startCall();
                 mIvCall.setImageResource(R.drawable.btn_end_call);
 
                 showCallPop();
 
-            } else if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
-                rtcDelegate.finishCall();
+            } else if (mCallManager.getCurrentState() == CallManager.CallState.CALLING) {
+                mCallManager.finishCall();
                 mIvCall.setImageResource(R.drawable.ic_start_call);
             } else {
-                rtcDelegate.cancelCall();
+                mCallManager.cancelCall();
                 mIvCall.setImageResource(R.drawable.ic_start_call);
             }
         });
 
-        rtcDelegate = new RtcDelegate(this);
         mViewModel.InitRTCRoom();
+        mCallManager = new CallManager(this);
+        mViewModel.loginRtc(roomName, Long.parseLong(userid), "");
 
-        LoadingPopupView loadingPopup = (LoadingPopupView) new XPopup.Builder(this)
+        mLoadingPopup = (LoadingPopupView) new XPopup.Builder(this)
                 .dismissOnBackPressed(false)
                 .dismissOnTouchOutside(false)
                 .hasShadowBg(false)
                 .asLoading("加载中")
                 .show();
-        loadingPopup.delayDismissWith(1500L, () -> {
-            mViewModel.loginRtc(roomName, Long.parseLong(userid), "");
-        });
 
         initLiveData();
     }
 
+
     private void initLiveData() {
+
         mViewModel.loginStatus.observe(this, rtcLoginStatus -> {
             if (rtcLoginStatus.isSuccess()) {
-                mViewModel.mBaiduRtcRoom.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
-                mViewModel.mBaiduRtcRoom.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
+                mViewModel.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
+                mViewModel.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
                 findViewById(R.id.root).setVisibility(View.VISIBLE);
+                dismiss();
+            } else {
+                toast(rtcLoginStatus.getMsg());
+                finish();
             }
         });
+
         mViewModel.mUserMsg.observe(this, msg -> {
-            rtcDelegate.onMessage(msg);
+            mCallManager.onMessage(msg);
         });
-        mViewModel.mUserJoin.observe(this, userId -> {
 
+        mViewModel.mUserLeave.observe(this, userId -> {
+            toast("对方已退出通话");
+            finish();
         });
-        mViewModel.mErrorInfo.observe(this, userId -> {
+    }
 
-        });
+
+    public void dismiss() {
+        if (mLoadingPopup != null && mLoadingPopup.isShow()) {
+            mLoadingPopup.dismiss();
+        }
     }
 
 
     public void cancelCall() {
-        rtcDelegate.cancelCall();
+        mCallManager.cancelCall();
     }
 
 
     public void receiveCall() {
-        rtcDelegate.receiveCall();
+        mCallManager.receiveCall();
     }
 
 
@@ -156,6 +168,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
         mViewModel.stopMusic();
     }
 
+
     public void dismissReceive() {
         if (mReceivedCallPop != null && mReceivedCallPop.isShow()) {
             mReceivedCallPop.dismiss();
@@ -171,10 +184,10 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
      * @param commandSource 指令来源：拨号方发出 / 接听方发出
      */
     @Override
-    public void onStateChange(RtcDelegate.CallState currentState,
-                              RtcDelegate.CallRole role,
-                              RtcDelegate.CallCommand command,
-                              RtcDelegate.CallRole commandSource) {
+    public void onStateChange(CallManager.CallState currentState,
+                              CallManager.CallRole role,
+                              CallManager.CallCommand command,
+                              CallManager.CallRole commandSource) {
 
         runOnUiThread(() -> {
             XLog.d("onStateChange", currentState.toString());
@@ -184,14 +197,14 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             //  指令是他人发出
             boolean commandFromOther = role != commandSource;
 
-            boolean isSender = role == RtcDelegate.CallRole.SENDER;
+            boolean isSender = role == CallManager.CallRole.SENDER;
 
-            boolean isReceive = role == RtcDelegate.CallRole.RECEIVER;
+            boolean isReceive = role == CallManager.CallRole.RECEIVER;
 
             //  不同呼叫状态做处理
             switch (currentState) {
                 case NORMAL:
-                    if (commandFromMe && command == RtcDelegate.CallCommand.CANCEL) {
+                    if (commandFromMe && command == CallManager.CallCommand.CANCEL) {
                         if (isSender) {
                             dismissCall();
                         } else {
@@ -199,7 +212,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                         }
                         toast(R.string.canceled_call);
                     } else {
-                        if (commandFromOther && command == RtcDelegate.CallCommand.CANCEL) {
+                        if (commandFromOther && command == CallManager.CallCommand.CANCEL) {
                             if (isSender) {
                                 dismissCall();
                                 toast(R.string.refused_call);
@@ -207,25 +220,26 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                                 dismissReceive();
                                 toast(R.string.other_canceled_call);
                             }
-                        } else if (isSender && command == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
+                        } else if (isSender && command == CallManager.CallCommand.REQUEST_TIMEOUT) {
                             //  发送方，呼叫超时
                             dismissCall();
                             toast(R.string.not_response_end);
-                        } else if (isSender && command == RtcDelegate.CallCommand.BUSY_HERE) {
+                        } else if (isSender && command == CallManager.CallCommand.BUSY_HERE) {
                             dismissCall();
                             toast(R.string.in_call_please_wait);
-                        } else if (commandFromMe && command == RtcDelegate.CallCommand.FINISH) {
+                        } else if (commandFromMe && command == CallManager.CallCommand.FINISH) {
                             toast(R.string.end_call_over);
                             mViewModel.stopPublsh();
-                        } else if (commandFromOther && command == RtcDelegate.CallCommand.FINISH) {
+                        } else if (commandFromOther && command == CallManager.CallCommand.FINISH) {
                             toast(R.string.other_end_call_over);
                             mViewModel.stopPublsh();
-                        } else if (isReceive && command == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
+                        } else if (isReceive && command == CallManager.CallCommand.REQUEST_TIMEOUT) {
                             dismissReceive();
                             toast(R.string.timeout_end);
                         }
                     }
                     mIvCall.setImageResource(R.drawable.ic_start_call);
+                    mViewModel.stopMusic();
                     break;
                 case INVITING:
                     break;
@@ -258,7 +272,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
 
     @Override
-    public void sendMessage(String msg) {
+    public void sendMessageToUser(String msg) {
         runOnUiThread(() -> {
             mViewModel.sendMessageToUser(msg);
         });
@@ -275,8 +289,8 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
     @Override
     public void onBackPressed() {
-        if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
-            rtcDelegate.finishCall();
+        if (mCallManager.getCurrentState() == CallManager.CallState.CALLING) {
+            mCallManager.finishCall();
         }
         mIvCall.setImageResource(R.drawable.ic_start_call);
         super.onBackPressed();
@@ -295,18 +309,6 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     protected void onResume() {
         super.onResume();
         mViewModel.startPreview();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mViewModel.stopPreview();
-    }
-
-    @Override
-    protected void onDestroy() {
-        mViewModel.logoutRtcRoom();
-        super.onDestroy();
     }
 
 

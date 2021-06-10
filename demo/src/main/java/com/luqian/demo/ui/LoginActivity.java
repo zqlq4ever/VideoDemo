@@ -1,4 +1,4 @@
-package com.luqian.demo;
+package com.luqian.demo.ui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -11,13 +11,14 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.gyf.immersionbar.ImmersionBar;
+import com.luqian.demo.R;
+import com.luqian.demo.ui.video.VideoActivity;
 import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")
@@ -27,7 +28,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private AutoCompleteTextView mUserID;
     private EditText mEtRoomID;
-    private CheckBox mCallModeCheckbox;
     private String mUserDisplayname;
 
 
@@ -90,19 +90,12 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
-
-        mCallModeCheckbox.setChecked(sp.getBoolean("call_mode_checked", false));
-        mCallModeCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-            prefs.edit().putBoolean("call_mode_checked", isChecked).commit();
-        });
     }
 
 
     private void initView() {
         mUserID = findViewById(R.id.userid);
         mEtRoomID = findViewById(R.id.roomid);
-        mCallModeCheckbox = findViewById(R.id.checkbox_call_mode);
     }
 
 
