@@ -16,6 +16,9 @@ import com.gyf.immersionbar.ImmersionBar;
 import com.luqian.demo.widget.dialog.CallPop;
 import com.luqian.demo.widget.dialog.ReceivedCallPop;
 import com.luqian.rtc.CallManager;
+import com.luqian.rtc.bean.CallCommand;
+import com.luqian.rtc.bean.CallRole;
+import com.luqian.rtc.bean.CallState;
 import com.luqian.rtc.common.CallStateObserver;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
@@ -30,6 +33,10 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     private CallPop mCallPop;
     private ReceivedCallPop mReceivedCallPop;
     private ImageView mIvCall;
+    private ImageView mIvAudio;
+    private ImageView mIvSpeaker;
+    private ImageView mIvVideo;
+    private ImageView mIvCamera;
     public VideoViewModel mViewModel;
     public CallManager mCallManager;
     private LoadingPopupView mLoadingPopup;
@@ -48,22 +55,30 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
         setContentView(R.layout.activity_video);
 
+        mIvCall = findViewById(R.id.iv_call);
+
+        mIvAudio = findViewById(R.id.iv_audio);
+
+        mIvSpeaker = findViewById(R.id.iv_speaker);
+
+        mIvVideo = findViewById(R.id.iv_video);
+
+        mIvCamera = findViewById(R.id.iv_camera);
+
         mViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
 
         String userid = getIntent().getStringExtra("userid");
+
         String roomName = getIntent().getStringExtra("roomname");
 
-        mIvCall = findViewById(R.id.iv_call);
-
-        mIvCall.setImageResource(R.drawable.ic_start_call);
         mIvCall.setOnClickListener(view -> {
-            if (mCallManager.getCurrentState() == CallManager.CallState.NORMAL) {
+            if (mCallManager.getCurrentState() == CallState.NORMAL) {
                 mCallManager.startCall();
                 mIvCall.setImageResource(R.drawable.btn_end_call);
 
                 showCallPop();
 
-            } else if (mCallManager.getCurrentState() == CallManager.CallState.CALLING) {
+            } else if (mCallManager.getCurrentState() == CallState.CALLING) {
                 mCallManager.finishCall();
                 mIvCall.setImageResource(R.drawable.ic_start_call);
             } else {
@@ -72,18 +87,33 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             }
         });
 
-        mViewModel.InitRTCRoom();
+        mIvAudio.setOnClickListener(this::muteMicphone);
+
+        mIvSpeaker.setOnClickListener(this::switchSpeaker);
+
+        mIvVideo.setOnClickListener(this::muteVideo);
+
+        mIvCamera.setOnClickListener(this::switchCamera);
+
         mCallManager = new CallManager(this);
+
+        mViewModel.InitRTCRoom();
+
         mViewModel.loginRtc(roomName, Long.parseLong(userid), "");
 
+        showLoading();
+
+        initLiveData();
+    }
+
+
+    private void showLoading() {
         mLoadingPopup = (LoadingPopupView) new XPopup.Builder(this)
                 .dismissOnBackPressed(false)
                 .dismissOnTouchOutside(false)
                 .hasShadowBg(false)
                 .asLoading("加载中")
                 .show();
-
-        initLiveData();
     }
 
 
@@ -102,7 +132,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
         });
 
         mViewModel.mUserMsg.observe(this, msg -> {
-            mCallManager.onMessage(msg);
+            mCallManager.onRtcUserCommandMessage(msg);
         });
 
         mViewModel.mUserLeave.observe(this, userId -> {
@@ -130,8 +160,11 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
 
     private void showCallPop() {
+
         dismissCall();
+
         mViewModel.playMusic();
+
         if (mCallPop == null) {
             mCallPop = (CallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -141,13 +174,17 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                     .popupAnimation(PopupAnimation.NoAnimation)
                     .asCustom(new CallPop(this));
         }
+
         mCallPop.show();
     }
 
 
     private void showReceivePop() {
+
         dismissCall();
+
         mViewModel.playMusic();
+
         if (mReceivedCallPop == null) {
             mReceivedCallPop = (ReceivedCallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -157,6 +194,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                     .popupAnimation(PopupAnimation.NoAnimation)
                     .asCustom(new ReceivedCallPop(this));
         }
+
         mReceivedCallPop.show();
     }
 
@@ -184,10 +222,10 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
      * @param commandSource 指令来源：拨号方发出 / 接听方发出
      */
     @Override
-    public void onStateChange(CallManager.CallState currentState,
-                              CallManager.CallRole role,
-                              CallManager.CallCommand command,
-                              CallManager.CallRole commandSource) {
+    public void onStateChange(CallState currentState,
+                              CallRole role,
+                              CallCommand command,
+                              CallRole commandSource) {
 
         runOnUiThread(() -> {
             XLog.d("onStateChange", currentState.toString());
@@ -197,14 +235,14 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             //  指令是他人发出
             boolean commandFromOther = role != commandSource;
 
-            boolean isSender = role == CallManager.CallRole.SENDER;
+            boolean isSender = role == CallRole.SENDER;
 
-            boolean isReceive = role == CallManager.CallRole.RECEIVER;
+            boolean isReceive = role == CallRole.RECEIVER;
 
-            //  不同呼叫状态做处理
+            //  不同通话状态做处理
             switch (currentState) {
                 case NORMAL:
-                    if (commandFromMe && command == CallManager.CallCommand.CANCEL) {
+                    if (commandFromMe && command == CallCommand.CANCEL) {
                         if (isSender) {
                             dismissCall();
                         } else {
@@ -212,7 +250,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                         }
                         toast(R.string.canceled_call);
                     } else {
-                        if (commandFromOther && command == CallManager.CallCommand.CANCEL) {
+                        if (commandFromOther && command == CallCommand.CANCEL) {
                             if (isSender) {
                                 dismissCall();
                                 toast(R.string.refused_call);
@@ -220,20 +258,20 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                                 dismissReceive();
                                 toast(R.string.other_canceled_call);
                             }
-                        } else if (isSender && command == CallManager.CallCommand.REQUEST_TIMEOUT) {
+                        } else if (isSender && command == CallCommand.REQUEST_TIMEOUT) {
                             //  发送方，呼叫超时
                             dismissCall();
                             toast(R.string.not_response_end);
-                        } else if (isSender && command == CallManager.CallCommand.BUSY_HERE) {
+                        } else if (isSender && command == CallCommand.BUSY_HERE) {
                             dismissCall();
                             toast(R.string.in_call_please_wait);
-                        } else if (commandFromMe && command == CallManager.CallCommand.FINISH) {
+                        } else if (commandFromMe && command == CallCommand.FINISH) {
                             toast(R.string.end_call_over);
                             mViewModel.stopPublsh();
-                        } else if (commandFromOther && command == CallManager.CallCommand.FINISH) {
+                        } else if (commandFromOther && command == CallCommand.FINISH) {
                             toast(R.string.other_end_call_over);
                             mViewModel.stopPublsh();
-                        } else if (isReceive && command == CallManager.CallCommand.REQUEST_TIMEOUT) {
+                        } else if (isReceive && command == CallCommand.REQUEST_TIMEOUT) {
                             dismissReceive();
                             toast(R.string.timeout_end);
                         }
@@ -289,7 +327,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
     @Override
     public void onBackPressed() {
-        if (mCallManager.getCurrentState() == CallManager.CallState.CALLING) {
+        if (mCallManager.getCurrentState() == CallState.CALLING) {
             mCallManager.finishCall();
         }
         mIvCall.setImageResource(R.drawable.ic_start_call);
@@ -315,8 +353,10 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     /**
      * 开启 / 关闭 本地视频
      */
-    public void onLocalVideoMuteClicked(View view) {
+    public void muteVideo(View view) {
+
         ImageView iv = (ImageView) view;
+
         if (iv.isSelected()) {
             iv.setSelected(false);
             iv.setImageResource(R.drawable.btn_voice);
@@ -324,6 +364,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             iv.setSelected(true);
             iv.setImageResource(R.drawable.btn_voice_selected);
         }
+
         mViewModel.muteCamera(iv.isSelected());
 
         findViewById(R.id.local_rtc_video_view).setVisibility(iv.isSelected() ? View.GONE : View.VISIBLE);
@@ -333,7 +374,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     /**
      * 开启 或 关闭 声音
      */
-    public void onLocalAudioMuteClicked(View view) {
+    public void muteMicphone(View view) {
         ImageView ivVoice = (ImageView) view;
         if (ivVoice.isSelected()) {
             ivVoice.setSelected(false);
@@ -349,7 +390,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     /**
      * 切换前后摄像头
      */
-    public void onSwitchCameraClicked(View view) {
+    public void switchCamera(View view) {
         ImageView ivSwitchCamera = (ImageView) view;
         if (ivSwitchCamera.isSelected()) {
             ivSwitchCamera.setSelected(false);
@@ -365,7 +406,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     /**
      * 切换扬声器 / 听筒
      */
-    public void onSpeakerClicked(View view) {
+    public void switchSpeaker(View view) {
         ImageView iv = (ImageView) view;
         if (iv.isSelected()) {
             iv.setSelected(false);

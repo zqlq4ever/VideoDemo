@@ -2,6 +2,10 @@ package com.luqian.rtc;
 
 import android.os.Handler;
 
+import com.luqian.rtc.bean.CallCommand;
+import com.luqian.rtc.bean.CallConfig;
+import com.luqian.rtc.bean.CallRole;
+import com.luqian.rtc.bean.CallState;
 import com.luqian.rtc.common.CallStateObserver;
 
 import org.json.JSONException;
@@ -13,7 +17,7 @@ import org.json.JSONObject;
 public class CallManager {
 
     /**
-     * 当前状态
+     * 当前通话状态
      */
     private CallState currentState = CallState.NORMAL;
     /**
@@ -28,77 +32,19 @@ public class CallManager {
     private final Handler timerHandler;
     private Runnable timerRunnable;
 
-    /**
-     * 定义信令控制
-     */
-    public enum CallCommand {
-
-        INVITE(101),   // 发起呼叫
-        RING(102),     // 回复铃响
-        OK(103),       // 回话接通
-        FINISH(104),   // 挂断回话
-        CANCEL(105),   // 取消呼叫
-        REQUEST_TIMEOUT(106),   // 超时无回应
-        BUSY_HERE(107);         // 呼叫正忙
-
-        private final int value;
-
-        CallCommand(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-
-    /**
-     * 定义呼叫状态
-     */
-    public enum CallState {
-        NORMAL,     // 正常状态
-        INVITING,   // 发起呼叫中
-        RINGING,    // 响铃中
-        CALLING,    // 通话中
-        RECEIVE_INVITING,   //  收到通话邀请
-    }
-
-
-    /**
-     * 呼叫角色：发送方、接收方
-     */
-    public enum CallRole {
-        SENDER,
-        RECEIVER,
-    }
-
-
-    /**
-     * 呼叫配置
-     */
-    public static class CallConfig {
-        public long invitTimeout = 15_000;    // invite 发起呼叫超时时间
-        public long ringTimeout = 15_000;    // ring 超时时间
-    }
-
 
     public CallManager(CallStateObserver observer) {
         this.observer = observer;
-        this.config = new CallManager.CallConfig();
+        this.config = new CallConfig();
         timerHandler = new Handler();
     }
 
 
-    public CallState getCurrentState() {
-        return currentState;
-    }
-
     /**
-     * 发起会话
+     * 发起通话
      */
     public void startCall() {
-        sendInvite();
+        sendInviteCommand();
         currentState = CallState.INVITING;
         currentRole = CallRole.SENDER;
 
@@ -109,22 +55,23 @@ public class CallManager {
         timerHandler.postDelayed(timerRunnable, config.invitTimeout);
     }
 
+
     /**
-     * 接收会话
+     * 接收通话
      */
     public void receiveCall() {
         currentState = CallState.CALLING;
         timerHandler.removeCallbacks(timerRunnable);   // 关闭 ring 定时器
-        sendOk();
+        sendOkCommand();
         observer.onStateChange(currentState, currentRole, CallCommand.OK, CallRole.RECEIVER);
     }
 
 
     /**
-     * 取消会话(未接通时)
+     * 取消通话(未接通时)
      */
     public void cancelCall() {
-        sendCancel();
+        sendCancelCommand();
         currentState = CallState.NORMAL;
         timerHandler.removeCallbacks(timerRunnable);    // 关闭 ring 定时器
         observer.onStateChange(currentState, currentRole, CallCommand.CANCEL, currentRole);
@@ -132,19 +79,19 @@ public class CallManager {
 
 
     /**
-     * 结束会话
+     * 结束通话
      */
     public void finishCall() {
-        sendFinish();
+        sendFinishCommand();
         currentState = CallState.NORMAL;
         observer.onStateChange(currentState, currentRole, CallCommand.FINISH, currentRole);
     }
 
 
     /**
-     * 发送邀请 command
+     * 发送通话 command
      */
-    private void sendInvite() {
+    private void sendInviteCommand() {
         JSONObject invite = new JSONObject();
         try {
             invite.putOpt("command", CallCommand.INVITE.getValue());
@@ -154,7 +101,11 @@ public class CallManager {
         }
     }
 
-    private void sendRing() {
+
+    /**
+     * 发送响铃 command
+     */
+    private void sendRingCommand() {
         JSONObject invite = new JSONObject();
         try {
             invite.putOpt("command", CallCommand.RING.getValue());
@@ -164,51 +115,71 @@ public class CallManager {
         }
     }
 
-    private void sendOk() {
-        JSONObject invite = new JSONObject();
+
+    /**
+     * 发送接通 command
+     */
+    private void sendOkCommand() {
+        JSONObject ok = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.OK.getValue());
-            sendMessage(invite);
+            ok.putOpt("command", CallCommand.OK.getValue());
+            sendMessage(ok);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendFinish() {
-        JSONObject invite = new JSONObject();
+
+    /**
+     * 发送结束 command
+     */
+    private void sendFinishCommand() {
+        JSONObject finish = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.FINISH.getValue());
-            sendMessage(invite);
+            finish.putOpt("command", CallCommand.FINISH.getValue());
+            sendMessage(finish);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendCancel() {
-        JSONObject invite = new JSONObject();
+
+    /**
+     * 发送取消 command
+     */
+    private void sendCancelCommand() {
+        JSONObject cancel = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.CANCEL.getValue());
-            sendMessage(invite);
+            cancel.putOpt("command", CallCommand.CANCEL.getValue());
+            sendMessage(cancel);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendBusyHere() {
-        JSONObject invite = new JSONObject();
+
+    /**
+     * 发送繁忙 command
+     */
+    private void sendBusyCommand() {
+        JSONObject busy = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.BUSY_HERE.getValue());
-            sendMessage(invite);
+            busy.putOpt("command", CallCommand.BUSY_HERE.getValue());
+            sendMessage(busy);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendTimeout() {
-        JSONObject invite = new JSONObject();
+
+    /**
+     * 发送超时 command
+     */
+    private void sendTimeoutCommand() {
+        JSONObject timeout = new JSONObject();
         try {
-            invite.putOpt("command", CallCommand.REQUEST_TIMEOUT.getValue());
-            sendMessage(invite);
+            timeout.putOpt("command", CallCommand.REQUEST_TIMEOUT.getValue());
+            sendMessage(timeout);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -224,9 +195,17 @@ public class CallManager {
 
 
     /**
+     * 获取当前通话状态
+     */
+    public CallState getCurrentState() {
+        return currentState;
+    }
+
+
+    /**
      * 收到自定义信令消息
      */
-    public void onMessage(String message) {
+    public void onRtcUserCommandMessage(String message) {
         try {
             JSONObject obj = new JSONObject(message);
             int command = obj.optInt("command");
@@ -252,19 +231,19 @@ public class CallManager {
 
 
     /**
-     * 接收到通话邀请
+     * 接收到通话邀请 Command
      */
     private void onReceiveInvite() {
         switch (currentState) {
             case NORMAL: {
                 currentRole = CallRole.RECEIVER;
                 currentState = CallState.RECEIVE_INVITING;
-                sendRing();
+                sendRingCommand();
                 currentState = CallState.RINGING;
 
                 // Ring 定时器;只由接受方去做此超时判断
                 timerRunnable = () -> {
-                    sendTimeout();
+                    sendTimeoutCommand();
                     currentState = CallState.NORMAL;
                     observer.onStateChange(
                             currentState,
@@ -281,11 +260,14 @@ public class CallManager {
             }
             break;
             default:
-                sendBusyHere();
+                sendBusyCommand();
         }
     }
 
 
+    /**
+     * 收到响铃 Command
+     */
     private void onReceiveRing() {
         switch (currentState) {
             case INVITING:

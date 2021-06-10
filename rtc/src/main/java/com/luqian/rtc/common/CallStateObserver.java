@@ -1,6 +1,8 @@
 package com.luqian.rtc.common;
 
-import com.luqian.rtc.CallManager;
+import com.luqian.rtc.bean.CallCommand;
+import com.luqian.rtc.bean.CallRole;
+import com.luqian.rtc.bean.CallState;
 
 /**
  * 呼叫状态监听
@@ -12,7 +14,7 @@ public interface CallStateObserver {
      * @param command       状态改变原因指令
      * @param commandSource 指令来源：拨号方发出 / 接听方发出
      */
-    void onStateChange(CallManager.CallState currentState, CallManager.CallRole role, CallManager.CallCommand command, CallManager.CallRole commandSource);
+    void onStateChange(CallState currentState, CallRole role, CallCommand command, CallRole commandSource);
 
     void sendMessageToUser(String msg);
 }

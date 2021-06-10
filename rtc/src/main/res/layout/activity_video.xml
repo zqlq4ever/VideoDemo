@@ -45,18 +45,18 @@
         >
         
         <ImageView
+            android:id = "@+id/iv_audio"
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
-            android:onClick = "onLocalAudioMuteClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/ic_mute_voice" />
         
         <ImageView
+            android:id = "@+id/iv_speaker"
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
-            android:onClick = "onSpeakerClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/ic_speaker" />
         
@@ -65,23 +65,22 @@
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
-            android:onClick = "onEndCallClicked"
             android:scaleType = "centerInside"
-            android:src = "@drawable/btn_end_call" />
+            android:src = "@drawable/ic_start_call" />
         
         <ImageView
+            android:id = "@+id/iv_video"
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
-            android:onClick = "onLocalVideoMuteClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/btn_voice" />
         
         <ImageView
+            android:id = "@+id/iv_camera"
             android:layout_width = "0dp"
             android:layout_height = "match_parent"
             android:layout_weight = "20"
-            android:onClick = "onSwitchCameraClicked"
             android:scaleType = "centerInside"
             android:src = "@drawable/ic_switch_camera" />
     
