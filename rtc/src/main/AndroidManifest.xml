@@ -21,11 +21,6 @@
         android:supportsRtl = "true"
         android:theme = "@style/Theme.AppCompat.Light.NoActionBar">
         
-        <activity
-            android:name = "com.luqian.demo.ui.video.VideoActivity"
-            android:screenOrientation = "portrait"
-            android:windowSoftInputMode = "stateHidden" />
-        
         <!--适配华为（huawei）刘海屏-->
         <meta-data
             android:name = "android.notch_support"

@@ -51,6 +51,7 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                 .fitsSystemWindows(true)
                 .statusBarColor(R.color.black)
                 .init();
+
         getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.black));
 
         setContentView(R.layout.activity_video);
@@ -73,7 +74,9 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
         mIvCall.setOnClickListener(view -> {
             if (mCallManager.getCurrentState() == CallState.NORMAL) {
+
                 mCallManager.startCall();
+
                 mIvCall.setImageResource(R.drawable.btn_end_call);
 
                 showCallPop();
