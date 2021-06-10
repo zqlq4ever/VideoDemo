@@ -18,7 +18,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.rtc.VideoActivity;
 import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")
@@ -171,7 +170,6 @@ public class LoginActivity extends AppCompatActivity {
     private void toVideoPage(String userId, String roomId) {
         Intent intent = new Intent(LoginActivity.this, VideoActivity.class);
 
-        intent.putExtra("callMode", mCallModeCheckbox.isChecked());
         intent.putExtra("userid", userId);
         intent.putExtra("roomname", roomId);
 

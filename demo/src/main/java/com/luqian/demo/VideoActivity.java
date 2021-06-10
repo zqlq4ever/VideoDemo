@@ -1,15 +1,22 @@
-package com.luqian.rtc;
+package com.luqian.demo;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.rtc.widget.dialog.CallPop;
-import com.luqian.rtc.widget.dialog.ReceivedCallPop;
+import com.luqian.demo.dialog.CallPop;
+import com.luqian.demo.dialog.ReceivedCallPop;
+import com.luqian.rtc.RtcDelegate;
+import com.luqian.rtc.common.CallStateObserver;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
 import com.lxj.xpopup.impl.LoadingPopupView;
@@ -17,44 +24,55 @@ import com.lxj.xpopup.impl.LoadingPopupView;
 /**
  * 1 v 1 音视频
  */
-public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallStateObserver {
+public class VideoActivity extends AppCompatActivity implements CallStateObserver {
 
     private static final String TAG = "VideoCallActivity";
     private CallPop mCallPop;
     private ReceivedCallPop mReceivedCallPop;
+    private ImageView mIvCall;
+    public VideoViewModel mViewModel;
+    public RtcDelegate rtcDelegate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         ImmersionBar.with(this)
                 //  使用该属性,必须指定状态栏颜色
                 .fitsSystemWindows(true)
                 .statusBarColor(R.color.black)
                 .init();
         getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.black));
+
         setContentView(R.layout.activity_video);
+
+        mViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
+
+        String userid = getIntent().getStringExtra("userid");
+        String roomName = getIntent().getStringExtra("roomname");
+
         mIvCall = findViewById(R.id.iv_call);
 
-        if (mCallMode) {
-            mIvCall.setImageResource(R.drawable.ic_start_call);
-            mIvCall.setOnClickListener(view -> {
-                if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.NORMAL) {
-                    rtcDelegate.startCall();
-                    mIvCall.setImageResource(R.drawable.btn_end_call);
+        mIvCall.setImageResource(R.drawable.ic_start_call);
+        mIvCall.setOnClickListener(view -> {
+            if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.NORMAL) {
+                rtcDelegate.startCall();
+                mIvCall.setImageResource(R.drawable.btn_end_call);
 
-                    showCallPop();
+                showCallPop();
 
-                } else if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
-                    rtcDelegate.finishCall();
-                    mIvCall.setImageResource(R.drawable.ic_start_call);
-                } else {
-                    rtcDelegate.cancelCall();
-                    mIvCall.setImageResource(R.drawable.ic_start_call);
-                }
-            });
-        }
+            } else if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
+                rtcDelegate.finishCall();
+                mIvCall.setImageResource(R.drawable.ic_start_call);
+            } else {
+                rtcDelegate.cancelCall();
+                mIvCall.setImageResource(R.drawable.ic_start_call);
+            }
+        });
 
         rtcDelegate = new RtcDelegate(this);
+        mViewModel.InitRTCRoom();
 
         LoadingPopupView loadingPopup = (LoadingPopupView) new XPopup.Builder(this)
                 .dismissOnBackPressed(false)
@@ -62,15 +80,30 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                 .hasShadowBg(false)
                 .asLoading("加载中")
                 .show();
-        loadingPopup.delayDismissWith(1500L, this::loginRtc);
+        loadingPopup.delayDismissWith(1500L, () -> {
+            mViewModel.loginRtc(roomName, Long.parseLong(userid), "");
+        });
+
+        initLiveData();
     }
 
+    private void initLiveData() {
+        mViewModel.loginStatus.observe(this, rtcLoginStatus -> {
+            if (rtcLoginStatus.isSuccess()) {
+                mViewModel.mBaiduRtcRoom.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
+                mViewModel.mBaiduRtcRoom.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
+                findViewById(R.id.root).setVisibility(View.VISIBLE);
+            }
+        });
+        mViewModel.mUserMsg.observe(this, msg -> {
+            rtcDelegate.onMessage(msg);
+        });
+        mViewModel.mUserJoin.observe(this, userId -> {
 
-    @Override
-    void loginRtcSuccess() {
-        mVideoRoom.setLocalDisplay(findViewById(R.id.local_rtc_video_view));
-        mVideoRoom.setRemoteDisplay(findViewById(R.id.remote_rtc_video_view));
-        findViewById(R.id.root).setVisibility(View.VISIBLE);
+        });
+        mViewModel.mErrorInfo.observe(this, userId -> {
+
+        });
     }
 
 
@@ -86,7 +119,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
     private void showCallPop() {
         dismissCall();
-        playMusic();
+        mViewModel.playMusic();
         if (mCallPop == null) {
             mCallPop = (CallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -102,7 +135,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
     private void showReceivePop() {
         dismissCall();
-        playMusic();
+        mViewModel.playMusic();
         if (mReceivedCallPop == null) {
             mReceivedCallPop = (ReceivedCallPop) new XPopup.Builder(this)
                     .hasStatusBar(false)
@@ -120,14 +153,14 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
         if (mCallPop != null && mCallPop.isShow()) {
             mCallPop.dismiss();
         }
-        stopMusic();
+        mViewModel.stopMusic();
     }
 
     public void dismissReceive() {
         if (mReceivedCallPop != null && mReceivedCallPop.isShow()) {
             mReceivedCallPop.dismiss();
         }
-        stopMusic();
+        mViewModel.stopMusic();
     }
 
 
@@ -183,12 +216,10 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                             toast(R.string.in_call_please_wait);
                         } else if (commandFromMe && command == RtcDelegate.CallCommand.FINISH) {
                             toast(R.string.end_call_over);
-                            mVideoRoom.stopPublish();
-                            mVideoRoom.stopSubscribeStreaming(partnerId);
+                            mViewModel.stopPublsh();
                         } else if (commandFromOther && command == RtcDelegate.CallCommand.FINISH) {
                             toast(R.string.other_end_call_over);
-                            mVideoRoom.stopPublish();
-                            mVideoRoom.stopSubscribeStreaming(partnerId);
+                            mViewModel.stopPublsh();
                         } else if (isReceive && command == RtcDelegate.CallCommand.REQUEST_TIMEOUT) {
                             dismissReceive();
                             toast(R.string.timeout_end);
@@ -217,8 +248,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
                         toast(R.string.call_establish_ing);
                     }
                     mIvCall.setImageResource(R.drawable.btn_end_call);
-                    mVideoRoom.startPublish();
-                    mVideoRoom.subscribeStreaming(0, partnerId);
+                    mViewModel.startPublsh();
                     break;
                 case RECEIVE_INVITING:
                     break;
@@ -230,8 +260,7 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
     @Override
     public void sendMessage(String msg) {
         runOnUiThread(() -> {
-            mVideoRoom.sendMessageToUser(msg, partnerId);
-            XLog.e("sendMessage:", partnerId + "--" + msg);
+            mViewModel.sendMessageToUser(msg);
         });
     }
 
@@ -246,12 +275,103 @@ public class VideoActivity extends RtcBaseActivity implements RtcDelegate.CallSt
 
     @Override
     public void onBackPressed() {
-        if (mCallMode) {
-            if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
-                rtcDelegate.finishCall();
-            }
-            mIvCall.setImageResource(R.drawable.ic_start_call);
+        if (rtcDelegate.getCurrentState() == RtcDelegate.CallState.CALLING) {
+            rtcDelegate.finishCall();
         }
+        mIvCall.setImageResource(R.drawable.ic_start_call);
         super.onBackPressed();
+    }
+
+    protected void toast(@StringRes int resId) {
+        Toast.makeText(getApplicationContext(), resId, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void toast(String msg) {
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mViewModel.startPreview();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mViewModel.stopPreview();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mViewModel.logoutRtcRoom();
+        super.onDestroy();
+    }
+
+
+    /**
+     * 开启 / 关闭 本地视频
+     */
+    public void onLocalVideoMuteClicked(View view) {
+        ImageView iv = (ImageView) view;
+        if (iv.isSelected()) {
+            iv.setSelected(false);
+            iv.setImageResource(R.drawable.btn_voice);
+        } else {
+            iv.setSelected(true);
+            iv.setImageResource(R.drawable.btn_voice_selected);
+        }
+        mViewModel.muteCamera(iv.isSelected());
+
+        findViewById(R.id.local_rtc_video_view).setVisibility(iv.isSelected() ? View.GONE : View.VISIBLE);
+    }
+
+
+    /**
+     * 开启 或 关闭 声音
+     */
+    public void onLocalAudioMuteClicked(View view) {
+        ImageView ivVoice = (ImageView) view;
+        if (ivVoice.isSelected()) {
+            ivVoice.setSelected(false);
+            ivVoice.setImageResource(R.drawable.ic_mute_voice);
+        } else {
+            ivVoice.setSelected(true);
+            ivVoice.setImageResource(R.drawable.ic_mute_voice_selected);
+        }
+        mViewModel.muteMicphone(ivVoice.isSelected());
+    }
+
+
+    /**
+     * 切换前后摄像头
+     */
+    public void onSwitchCameraClicked(View view) {
+        ImageView ivSwitchCamera = (ImageView) view;
+        if (ivSwitchCamera.isSelected()) {
+            ivSwitchCamera.setSelected(false);
+            ivSwitchCamera.setImageResource(R.drawable.ic_switch_camera);
+        } else {
+            ivSwitchCamera.setSelected(true);
+            ivSwitchCamera.setImageResource(R.drawable.btn_switch_camera_selected);
+        }
+        mViewModel.switchCamera();
+    }
+
+
+    /**
+     * 切换扬声器 / 听筒
+     */
+    public void onSpeakerClicked(View view) {
+        ImageView iv = (ImageView) view;
+        if (iv.isSelected()) {
+            iv.setSelected(false);
+            iv.setImageResource(R.drawable.ic_speaker);
+        } else {
+            iv.setSelected(true);
+            iv.setImageResource(R.drawable.ic_speaker_selected);
+        }
+        mViewModel.switchLoundSpeaker();
     }
 }

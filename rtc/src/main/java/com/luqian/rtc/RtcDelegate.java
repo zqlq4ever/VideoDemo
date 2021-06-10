@@ -2,6 +2,8 @@ package com.luqian.rtc;
 
 import android.os.Handler;
 
+import com.luqian.rtc.common.CallStateObserver;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +31,7 @@ public class RtcDelegate {
     /**
      * 定义信令控制
      */
-    enum CallCommand {
+    public enum CallCommand {
 
         INVITE(101),   // 发起呼叫
         RING(102),     // 回复铃响
@@ -54,7 +56,7 @@ public class RtcDelegate {
     /**
      * 定义呼叫状态
      */
-    enum CallState {
+    public enum CallState {
         NORMAL,     // 正常状态
         INVITING,   // 发起呼叫中
         RINGING,    // 响铃中
@@ -66,25 +68,9 @@ public class RtcDelegate {
     /**
      * 呼叫角色：发送方、接收方
      */
-    enum CallRole {
+    public enum CallRole {
         SENDER,
         RECEIVER,
-    }
-
-
-    /**
-     * 呼叫状态监听
-     */
-    interface CallStateObserver {
-        /**
-         * @param currentState  当前呼叫状态
-         * @param role          呼叫角色：拨号方 / 接听方
-         * @param command       状态改变原因指令
-         * @param commandSource 指令来源：拨号方发出 / 接听方发出
-         */
-        void onStateChange(CallState currentState, CallRole role, CallCommand command, CallRole commandSource);
-
-        void sendMessage(String msg);
     }
 
 
