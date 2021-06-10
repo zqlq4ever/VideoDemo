@@ -139,6 +139,10 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             toast("对方已退出通话");
             finish();
         });
+
+        mViewModel.mErrorInfo.observe(this, errorInfo -> {
+
+        });
     }
 
 
@@ -216,82 +220,92 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
 
     /**
-     * @param currentState  当前呼叫状态
-     * @param role          呼叫角色：拨号方 / 接听方
-     * @param command       状态改变原因指令
-     * @param commandSource 指令来源：拨号方发出 / 接听方发出
+     * @param currentState 当前呼叫状态
+     * @param role         呼叫角色：拨号方 / 接听方
+     * @param command      状态改变原因指令
+     * @param commandFrom  指令来源：拨号方发出 / 接听方发出
      */
     @Override
     public void onStateChange(CallState currentState,
                               CallRole role,
                               CallCommand command,
-                              CallRole commandSource) {
+                              CallRole commandFrom) {
 
         runOnUiThread(() -> {
             XLog.d("onStateChange", currentState.toString());
 
             //  指令是自己发出
-            boolean commandFromMe = role == commandSource;
-            //  指令是他人发出
-            boolean commandFromOther = role != commandSource;
+            boolean commandFromMe = role == commandFrom;
 
             boolean isSender = role == CallRole.SENDER;
 
-            boolean isReceive = role == CallRole.RECEIVER;
+            boolean isReceiver = role == CallRole.RECEIVER;
 
             //  不同通话状态做处理
             switch (currentState) {
+                //  切换为常态
                 case NORMAL:
-                    if (commandFromMe && command == CallCommand.CANCEL) {
-                        if (isSender) {
-                            dismissCall();
-                        } else {
-                            dismissReceive();
-                        }
-                        toast(R.string.canceled_call);
-                    } else {
-                        if (commandFromOther && command == CallCommand.CANCEL) {
-                            if (isSender) {
-                                dismissCall();
-                                toast(R.string.refused_call);
+                    //  切换原因
+                    switch (command) {
+                        //  取消
+                        case CANCEL:
+                            if (commandFromMe) {
+                                if (isSender) {
+                                    dismissCall();
+                                } else {
+                                    dismissReceive();
+                                }
+                                toast(R.string.canceled_call);
                             } else {
-                                dismissReceive();
-                                toast(R.string.other_canceled_call);
+                                if (isSender) {
+                                    dismissCall();
+                                    toast(R.string.refused_call);
+                                } else {
+                                    dismissReceive();
+                                    toast(R.string.other_canceled_call);
+                                }
                             }
-                        } else if (isSender && command == CallCommand.REQUEST_TIMEOUT) {
-                            //  发送方，呼叫超时
-                            dismissCall();
-                            toast(R.string.not_response_end);
-                        } else if (isSender && command == CallCommand.BUSY_HERE) {
+                            break;
+                        //  超时
+                        case TIMEOUT:
+                            if (isReceiver) {
+                                dismissReceive();
+                                toast(R.string.not_response_end);
+                            } else {
+                                dismissCall();
+                                toast(R.string.timeout_end);
+                            }
+                            break;
+                        //  对方正忙
+                        case OTHER_BUSY:
                             dismissCall();
                             toast(R.string.in_call_please_wait);
-                        } else if (commandFromMe && command == CallCommand.FINISH) {
-                            toast(R.string.end_call_over);
+                            break;
+                        //  结束通话
+                        case FINISH:
+                            if (commandFromMe) {
+                                toast(R.string.end_call_over);
+                            } else {
+                                toast(R.string.other_end_call_over);
+                            }
                             mViewModel.stopPublsh();
-                        } else if (commandFromOther && command == CallCommand.FINISH) {
-                            toast(R.string.other_end_call_over);
-                            mViewModel.stopPublsh();
-                        } else if (isReceive && command == CallCommand.REQUEST_TIMEOUT) {
-                            dismissReceive();
-                            toast(R.string.timeout_end);
-                        }
+                            break;
                     }
+
                     mIvCall.setImageResource(R.drawable.ic_start_call);
                     mViewModel.stopMusic();
                     break;
+                //  切换为邀请通话中
                 case INVITING:
                     break;
-                //  响铃
+                //  切换为响铃中
                 case RINGING:
                     //  接收方，弹窗提醒接听
-                    if (isReceive) {
+                    if (isReceiver) {
                         onReceiveInvite();
-                    } else {
-                        //  拨号方，弹窗
-                        mCallPop.setData(getString(R.string.wait_accept));
                     }
                     break;
-                //  通话中
+                //  切换为通话中
                 case CALLING:
                     if (isSender) {
                         dismissCall();
@@ -301,8 +315,6 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                     }
                     mIvCall.setImageResource(R.drawable.btn_end_call);
                     mViewModel.startPublsh();
-                    break;
-                case RECEIVE_INVITING:
                     break;
             }
         });

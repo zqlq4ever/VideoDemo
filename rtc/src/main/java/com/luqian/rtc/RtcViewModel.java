@@ -78,6 +78,13 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
+    /**
+     * 房间用户状态通知
+     *
+     * @param roomEvents 用户事件
+     * @param data       一般为 userID / feedID，特殊情况另做说明
+     * @param extra_info 额外信息说明
+     */
     @Override
     public void onRoomEventUpdate(int roomEvents, long data, String extra_info) {
         Log.i(TAG, "onRoomEventUpdate is: " + roomEvents);
@@ -158,6 +165,11 @@ public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoom
     }
 
 
+    /**
+     * server连接状态通知
+     *
+     * @param connecStates 通知
+     */
     @Override
     public void onPeerConnectStateUpdate(int connecStates) {
         Log.i(TAG, "onPeerConnectStateUpdate is: " + connecStates);
