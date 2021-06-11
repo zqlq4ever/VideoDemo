@@ -1,4 +1,4 @@
-package com.luqian.rtc.ui.video;
+package com.luqian.rtc.ui;
 
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;

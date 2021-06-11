@@ -1,4 +1,4 @@
-package com.luqian.rtc.ui.video;
+package com.luqian.rtc.ui;
 
 import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_RECEIVE;
 
@@ -15,11 +15,10 @@ import com.alibaba.android.arouter.launcher.ARouter;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.rtc.common.ReceiveManager;
 import com.luqian.rtc.bean.CallCommand;
-import com.luqian.rtc.bean.CallRole;
 import com.luqian.rtc.bean.CallState;
 import com.luqian.rtc.common.CallStateObserver;
+import com.luqian.rtc.common.ReceiveManager;
 import com.luqian.rtc.dialog.ReceivedCallPop;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
@@ -68,10 +67,9 @@ public class VideoReceiveActivity extends BaseVideoActivtiy implements CallState
         mIvCall.setOnClickListener(view -> {
             if (mReceiveManager.getCurrentState() == CallState.CALLING) {
                 mReceiveManager.finishCall();
-            } else {
-                mReceiveManager.cancelCall();
+            } else if (mReceiveManager.getCurrentState() == CallState.NORMAL) {
+                finish();
             }
-            finish();
         });
 
         ivAudio.setOnClickListener(this::muteMicphone);
@@ -130,8 +128,8 @@ public class VideoReceiveActivity extends BaseVideoActivtiy implements CallState
     }
 
 
-    public void cancelCall() {
-        mReceiveManager.cancelCall();
+    public void refuseCall() {
+        mReceiveManager.refuseCall();
     }
 
 
@@ -179,51 +177,45 @@ public class VideoReceiveActivity extends BaseVideoActivtiy implements CallState
     /**
      * @param currentState 当前呼叫状态
      * @param command      状态改变原因指令
-     * @param commandFrom  指令来源：拨号方发出 / 接听方发出
      */
     @Override
-    public void onRecieveStateChange(CallState currentState,
-                                     CallCommand command,
-                                     CallRole commandFrom) {
+    public void onRecieveStateChange(CallState currentState, CallCommand command) {
 
         runOnUiThread(() -> {
             XLog.d("onStateChange", currentState.toString());
-
-            //  指令是自己发出
-            boolean commandFromMe = CallRole.RECEIVER == commandFrom;
 
             //  不同通话状态做处理
             switch (currentState) {
                 //  切换为常态
                 case NORMAL:
+
+                    mViewModel.stopMusic();
+
                     //  切换原因
                     switch (command) {
-                        //  取消
-                        case CANCEL:
+                        //  对方取消拨号
+                        case CANCEL_DIAL:
                             dismissReceive();
-                            if (commandFromMe) {
-                                toast(R.string.canceled_call);
-                            } else {
-                                toast(R.string.other_canceled_call);
-                            }
+                            toast(R.string.cancele_dial);
                             break;
                         //  超时
-                        case TIMEOUT:
+                        case CALL_TIMEOUT:
                             dismissReceive();
                             toast(R.string.not_response_end);
                             break;
                         //  结束通话
-                        case FINISH:
-                            if (commandFromMe) {
-                                toast(R.string.end_call_over);
-                            } else {
-                                toast(R.string.other_end_call_over);
-                            }
+                        case FINISH_BY_CALL:
+                            toast(R.string.other_end_call);
                             mViewModel.stopPublsh();
+                            finish();
+                            break;
+                        //  结束通话
+                        case FINISH_BY_RECEIVE:
+                            toast(R.string.end_call);
+                            mViewModel.stopPublsh();
+                            finish();
                             break;
                     }
-
-                    mViewModel.stopMusic();
                     break;
                 //  切换为响铃中
                 case RINGING:
@@ -254,17 +246,13 @@ public class VideoReceiveActivity extends BaseVideoActivtiy implements CallState
         if (mReceiveManager.getCurrentState() == CallState.CALLING) {
             return;
         }
-//        mCallManager.finishCall();
-//        mIvCall.setImageResource(R.drawable.ic_start_call);
         super.onBackPressed();
     }
 
 
     @Override
     public void sendMessageToUser(String msg) {
-        runOnUiThread(() -> {
-            mViewModel.sendMessageToUser(msg);
-        });
+        runOnUiThread(() -> mViewModel.sendMessageToUser(msg));
     }
 }
 

@@ -1,4 +1,4 @@
-package com.luqian.rtc.ui.video;
+package com.luqian.rtc.ui;
 
 import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_CALL;
 
@@ -15,10 +15,9 @@ import com.alibaba.android.arouter.launcher.ARouter;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.rtc.common.CallManager;
 import com.luqian.rtc.bean.CallCommand;
-import com.luqian.rtc.bean.CallRole;
 import com.luqian.rtc.bean.CallState;
+import com.luqian.rtc.common.CallManager;
 import com.luqian.rtc.common.CallStateObserver;
 import com.luqian.rtc.dialog.CallPop;
 import com.lxj.xpopup.XPopup;
@@ -75,11 +74,8 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
                 showCallPop();
 
             } else if (mCallManager.getCurrentState() == CallState.CALLING) {
+                //  结束通话
                 mCallManager.finishCall();
-                mIvCall.setImageResource(R.drawable.ic_start_call);
-            } else {
-                mCallManager.cancelCall();
-                mIvCall.setImageResource(R.drawable.ic_start_call);
             }
         });
 
@@ -140,7 +136,7 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
 
 
     public void cancelCall() {
-        mCallManager.cancelCall();
+        mCallManager.cancelDial();
     }
 
 
@@ -175,18 +171,13 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
     /**
      * @param currentState 当前呼叫状态
      * @param command      状态改变原因指令
-     * @param commandFrom  指令来源：拨号方发出 / 接听方发出
      */
     @Override
     public void onCallStateChange(CallState currentState,
-                                  CallCommand command,
-                                  CallRole commandFrom) {
+                                  CallCommand command) {
 
         runOnUiThread(() -> {
             XLog.d("onStateChange", currentState.toString());
-
-            //  指令是自己发出
-            boolean commandFromMe = CallRole.SENDER == commandFrom;
 
             //  不同通话状态做处理
             switch (currentState) {
@@ -195,17 +186,17 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
                     //  切换原因
                     switch (command) {
                         //  取消
-                        case CANCEL:
-                            if (commandFromMe) {
-                                dismissCall();
-                                toast(R.string.canceled_call);
-                            } else {
-                                dismissCall();
-                                toast(R.string.refused_call);
-                            }
+                        case CANCEL_DIAL:
+                            dismissCall();
+                            toast(R.string.cancele_dial);
+                            break;
+                        //  取消
+                        case REFUSE:
+                            dismissCall();
+                            toast(R.string.other_refuse_call);
                             break;
                         //  超时
-                        case TIMEOUT:
+                        case CALL_TIMEOUT:
                             dismissCall();
                             toast(R.string.timeout_end);
                             break;
@@ -215,12 +206,14 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
                             toast(R.string.in_call_please_wait);
                             break;
                         //  结束通话
-                        case FINISH:
-                            if (commandFromMe) {
-                                toast(R.string.end_call_over);
-                            } else {
-                                toast(R.string.other_end_call_over);
-                            }
+                        case FINISH_BY_CALL:
+                            toast(R.string.end_call);
+                            mViewModel.stopPublsh();
+                            finish();
+                            break;
+                        //  结束通话
+                        case FINISH_BY_RECEIVE:
+                            toast(R.string.other_end_call);
                             mViewModel.stopPublsh();
                             finish();
                             break;
@@ -244,9 +237,7 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
 
     @Override
     public void sendMessageToUser(String msg) {
-        runOnUiThread(() -> {
-            mViewModel.sendMessageToUser(msg);
-        });
+        runOnUiThread(() -> mViewModel.sendMessageToUser(msg));
     }
 
 
@@ -256,8 +247,6 @@ public class VideoCallActivity extends BaseVideoActivtiy implements CallStateObs
         if (mCallManager.getCurrentState() == CallState.CALLING) {
             return;
         }
-//        mCallManager.finishCall();
-//        mIvCall.setImageResource(R.drawable.ic_start_call);
         super.onBackPressed();
     }
 }

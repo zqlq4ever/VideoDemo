@@ -1,4 +1,4 @@
-package com.luqian.rtc.ui.video;
+package com.luqian.rtc.ui;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;

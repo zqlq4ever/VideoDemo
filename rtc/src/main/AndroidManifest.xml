@@ -22,12 +22,12 @@
         android:theme = "@style/Theme.AppCompat.Light.NoActionBar">
         
         <activity
-            android:name = "com.luqian.rtc.ui.video.VideoReceiveActivity"
+            android:name = "com.luqian.rtc.ui.VideoReceiveActivity"
             android:launchMode = "singleTop"
             android:screenOrientation = "portrait" />
         
         <activity
-            android:name = "com.luqian.rtc.ui.video.VideoCallActivity"
+            android:name = "com.luqian.rtc.ui.VideoCallActivity"
             android:launchMode = "singleTop"
             android:screenOrientation = "portrait" />
         

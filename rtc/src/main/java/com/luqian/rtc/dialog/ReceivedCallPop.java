@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.baidu.rtc.videoroom.R;
-import com.luqian.rtc.ui.video.VideoReceiveActivity;
+import com.luqian.rtc.ui.VideoReceiveActivity;
 import com.lxj.xpopup.core.CenterPopupView;
 
 /**
@@ -40,7 +40,7 @@ public class ReceivedCallPop extends CenterPopupView {
         super.onCreate();
         findViewById(R.id.tv_cancel).setOnClickListener(v -> {
             mActivity.dismissReceive();
-            mActivity.cancelCall();
+            mActivity.refuseCall();
         });
         findViewById(R.id.tv_receive).setOnClickListener(v -> {
             mActivity.dismissReceive();

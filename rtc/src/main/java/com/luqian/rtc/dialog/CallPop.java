@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.baidu.rtc.videoroom.R;
-import com.luqian.rtc.ui.video.VideoCallActivity;
+import com.luqian.rtc.ui.VideoCallActivity;
 import com.lxj.xpopup.core.CenterPopupView;
 
 /**

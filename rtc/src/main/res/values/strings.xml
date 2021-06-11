@@ -129,13 +129,13 @@
     <string name = "start_call">正在拨号</string>
     <string name = "in_calling_state">正在发起通话中,请等待</string>
     <string name = "cancel">取消</string>
-    <string name = "canceled_call">已取消通话</string>
+    <string name = "cancele_dial">已取消拨号</string>
     <string name = "refused_call">对方已拒绝</string>
-    <string name = "other_canceled_call">对方已取消</string>
+    <string name = "other_refuse_call">对方拒绝接听</string>
     <string name = "not_response_end">超时未接听,已结束</string>
     <string name = "in_call_please_wait">对方正在通话中,请稍后再拨</string>
-    <string name = "end_call_over">已挂断,通话结束</string>
-    <string name = "other_end_call_over">对方已挂断,通话结束</string>
+    <string name = "end_call">已挂断,通话结束</string>
+    <string name = "other_end_call">对方已挂断,通话结束</string>
     <string name = "timeout_end">对方超时未接听,已结束</string>
     <string name = "wait_accept">等待对方接受中,请等待</string>
     <string name = "accept_establish">对方已接受,通话建立中</string>
