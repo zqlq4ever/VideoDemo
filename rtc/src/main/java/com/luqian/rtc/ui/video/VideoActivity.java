@@ -350,8 +350,8 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
         if (mCallManager.getCurrentState() == CallState.CALLING) {
             return;
         }
-        mCallManager.finishCall();
-        mIvCall.setImageResource(R.drawable.ic_start_call);
+//        mCallManager.finishCall();
+//        mIvCall.setImageResource(R.drawable.ic_start_call);
         super.onBackPressed();
     }
 
