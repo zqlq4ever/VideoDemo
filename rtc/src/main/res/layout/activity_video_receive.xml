@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android = "http://schemas.android.com/apk/res/android"
+    xmlns:app = "http://schemas.android.com/apk/res-auto"
+    xmlns:tools = "http://schemas.android.com/tools"
+    android:id = "@+id/root"
+    android:layout_width = "match_parent"
+    android:layout_height = "match_parent"
+    android:background = "@android:color/black"
+    android:orientation = "vertical"
+    android:visibility = "invisible"
+    tools:visibility = "visible">
+    
+    <com.baidu.rtc.RTCVideoView
+        android:id = "@+id/local_rtc_video_view"
+        android:layout_width = "0dp"
+        android:layout_height = "0dp"
+        android:layout_marginStart = "20dp"
+        android:layout_marginTop = "20dp"
+        android:layout_marginEnd = "20dp"
+        app:layout_constraintDimensionRatio = "h,4:3"
+        app:layout_constraintEnd_toEndOf = "parent"
+        app:layout_constraintStart_toStartOf = "parent"
+        app:layout_constraintTop_toTopOf = "parent" />
+    
+    <com.baidu.rtc.RTCVideoView
+        android:id = "@+id/remote_rtc_video_view"
+        android:layout_width = "0dp"
+        android:layout_height = "0dp"
+        android:layout_marginStart = "20dp"
+        android:layout_marginTop = "1dp"
+        android:layout_marginEnd = "20dp"
+        app:layout_constraintDimensionRatio = "h,4:3"
+        app:layout_constraintEnd_toEndOf = "parent"
+        app:layout_constraintStart_toStartOf = "parent"
+        app:layout_constraintTop_toBottomOf = "@id/local_rtc_video_view" />
+    
+    <LinearLayout
+        android:layout_width = "match_parent"
+        android:layout_height = "60dp"
+        android:layout_marginTop = "20dp"
+        android:layout_marginBottom = "20dp"
+        android:orientation = "horizontal"
+        app:layout_constraintBottom_toBottomOf = "parent"
+        >
+        
+        <ImageView
+            android:id = "@+id/iv_audio"
+            android:layout_width = "0dp"
+            android:layout_height = "match_parent"
+            android:layout_weight = "20"
+            android:scaleType = "centerInside"
+            android:src = "@drawable/ic_mute_voice" />
+        
+        <ImageView
+            android:id = "@+id/iv_speaker"
+            android:layout_width = "0dp"
+            android:layout_height = "match_parent"
+            android:layout_weight = "20"
+            android:scaleType = "centerInside"
+            android:src = "@drawable/ic_speaker" />
+        
+        <ImageView
+            android:id = "@+id/iv_call"
+            android:layout_width = "0dp"
+            android:layout_height = "match_parent"
+            android:layout_weight = "20"
+            android:scaleType = "centerInside"
+            android:src = "@drawable/btn_end_call" />
+        
+        <ImageView
+            android:id = "@+id/iv_video"
+            android:layout_width = "0dp"
+            android:layout_height = "match_parent"
+            android:layout_weight = "20"
+            android:scaleType = "centerInside"
+            android:src = "@drawable/btn_voice" />
+        
+        <ImageView
+            android:id = "@+id/iv_camera"
+            android:layout_width = "0dp"
+            android:layout_height = "match_parent"
+            android:layout_weight = "20"
+            android:scaleType = "centerInside"
+            android:src = "@drawable/ic_switch_camera" />
+    
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -10,11 +10,20 @@ import com.luqian.rtc.bean.CallState;
 public interface CallStateObserver {
     /**
      * @param currentState 当前呼叫状态
-     * @param role         呼叫角色：拨号方 / 接听方
      * @param command      状态改变原因指令
      * @param commandFrom  指令来源：拨号方发出 / 接听方发出
      */
-    void onStateChange(CallState currentState, CallRole role, CallCommand command, CallRole commandFrom);
+    default void onCallStateChange(CallState currentState, CallCommand command, CallRole commandFrom) {
+    }
+
+
+    /**
+     * @param currentState 当前呼叫状态
+     * @param command      状态改变原因指令
+     * @param commandFrom  指令来源：拨号方发出 / 接听方发出
+     */
+    default void onRecieveStateChange(CallState currentState, CallCommand command, CallRole commandFrom) {
+    }
 
 
     /**

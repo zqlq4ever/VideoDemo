@@ -1,4 +1,4 @@
-package com.luqian.rtc;
+package com.luqian.rtc.common;
 
 import android.os.Handler;
 
@@ -14,7 +14,7 @@ import org.json.JSONObject;
 /**
  * 通话管理
  */
-public class CallManager {
+public class ReceiveManager {
 
     /**
      * 当前通话状态
@@ -23,7 +23,7 @@ public class CallManager {
     /**
      * 当前角色
      */
-    private CallRole currentRole = CallRole.SENDER;
+    private final CallRole currentRole = CallRole.RECEIVER;
     /**
      * 呼叫状态监听
      */
@@ -33,26 +33,10 @@ public class CallManager {
     private Runnable timerRunnable;
 
 
-    public CallManager(CallStateObserver observer) {
+    public ReceiveManager(CallStateObserver observer) {
         this.observer = observer;
         this.config = new CallConfig();
         timerHandler = new Handler();
-    }
-
-
-    /**
-     * 发起通话邀请
-     */
-    public void startCall() {
-        sendInviteCommand();
-        currentState = CallState.INVITING;
-        currentRole = CallRole.SENDER;
-
-        timerRunnable = () -> {
-            currentState = CallState.NORMAL;
-            observer.onStateChange(currentState, currentRole, CallCommand.TIMEOUT, CallRole.SENDER);
-        };
-        timerHandler.postDelayed(timerRunnable, config.invitTimeout);
     }
 
 
@@ -64,7 +48,7 @@ public class CallManager {
         // 关闭 ring 定时器
         timerHandler.removeCallbacks(timerRunnable);
         currentState = CallState.CALLING;
-        observer.onStateChange(currentState, currentRole, CallCommand.OK, CallRole.RECEIVER);
+        observer.onRecieveStateChange(currentState, CallCommand.OK, CallRole.RECEIVER);
     }
 
 
@@ -76,7 +60,7 @@ public class CallManager {
         currentState = CallState.NORMAL;
         // 关闭 ring 定时器
         timerHandler.removeCallbacks(timerRunnable);
-        observer.onStateChange(currentState, currentRole, CallCommand.CANCEL, currentRole);
+        observer.onRecieveStateChange(currentState, CallCommand.CANCEL, currentRole);
     }
 
 
@@ -86,21 +70,7 @@ public class CallManager {
     public void finishCall() {
         sendFinishCommand();
         currentState = CallState.NORMAL;
-        observer.onStateChange(currentState, currentRole, CallCommand.FINISH, currentRole);
-    }
-
-
-    /**
-     * 发送通话 command
-     */
-    private void sendInviteCommand() {
-        JSONObject invite = new JSONObject();
-        try {
-            invite.putOpt("command", CallCommand.INVITE.getValue());
-            sendMessage(invite);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        observer.onRecieveStateChange(currentState, CallCommand.FINISH, currentRole);
     }
 
 
@@ -221,8 +191,6 @@ public class CallManager {
                 onFinishCommand();
             } else if (command == CallCommand.CANCEL.getValue()) {
                 onCancelCommand();
-            } else if (command == CallCommand.OTHER_BUSY.getValue()) {
-                onBusyCommand();
             } else if (command == CallCommand.TIMEOUT.getValue()) {
                 onTimeoutCommand();
             }
@@ -239,14 +207,11 @@ public class CallManager {
         switch (currentState) {
             //  只有是正常情况下，才响应通话邀请
             case NORMAL: {
-                //  此时为接听角色
-                currentRole = CallRole.RECEIVER;
                 //  状态为响铃中
                 currentState = CallState.RINGING;
                 //  切换成响铃状态
-                observer.onStateChange(
+                observer.onRecieveStateChange(
                         currentState,
-                        currentRole,
                         CallCommand.RING,
                         CallRole.RECEIVER);
 
@@ -254,9 +219,8 @@ public class CallManager {
                 timerRunnable = () -> {
                     sendTimeoutCommand();
                     currentState = CallState.NORMAL;
-                    observer.onStateChange(
+                    observer.onRecieveStateChange(
                             currentState,
-                            currentRole,
                             CallCommand.TIMEOUT,
                             CallRole.RECEIVER);
                 };
@@ -295,9 +259,8 @@ public class CallManager {
         switch (currentState) {
             case RINGING:
                 currentState = CallState.CALLING;
-                observer.onStateChange(
+                observer.onRecieveStateChange(
                         currentState,
-                        currentRole,
                         CallCommand.OK,
                         CallRole.RECEIVER);
                 break;
@@ -312,11 +275,10 @@ public class CallManager {
         switch (currentState) {
             case CALLING:
                 currentState = CallState.NORMAL;
-                observer.onStateChange(
+                observer.onRecieveStateChange(
                         currentState,
-                        currentRole,
                         CallCommand.FINISH,
-                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
+                        CallRole.SENDER);
                 break;
             default:
                 break;
@@ -331,42 +293,21 @@ public class CallManager {
                     timerHandler.removeCallbacks(timerRunnable);
                 }
                 currentState = CallState.NORMAL;
-                observer.onStateChange(
+                observer.onRecieveStateChange(
                         currentState,
-                        currentRole,
                         CallCommand.CANCEL,
-                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
+                        CallRole.SENDER);
                 break;
         }
     }
 
-
-    /**
-     * 发起呼叫一方，收到对方正在通话的信令
-     */
-    private void onBusyCommand() {
-        switch (currentState) {
-            case INVITING:
-                //  恢复正常
-                currentState = CallState.NORMAL;
-                observer.onStateChange(
-                        currentState,
-                        currentRole,
-                        CallCommand.OTHER_BUSY,
-                        currentRole == CallRole.SENDER ? CallRole.RECEIVER : CallRole.SENDER);
-                break;
-            default:
-                break;
-        }
-    }
 
     private void onTimeoutCommand() {
         switch (currentState) {
             case RINGING:
                 currentState = CallState.NORMAL;
-                observer.onStateChange(
+                observer.onRecieveStateChange(
                         currentState,
-                        currentRole,
                         CallCommand.TIMEOUT,
                         CallRole.RECEIVER);
                 break;

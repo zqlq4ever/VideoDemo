@@ -1,6 +1,7 @@
 package com.luqian.demo.ui;
 
-import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO;
+import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_CALL;
+import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_RECEIVE;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     private AutoCompleteTextView mUserID;
     private EditText mEtRoomID;
     private String mUserDisplayname;
+    private String path = ROUTER_RTC_VIDEO_CALL;
 
 
     @Override
@@ -73,6 +76,14 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
             return false;
+        });
+
+        ((RadioGroup) findViewById(R.id.rg_role)).setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rb_call) {
+                path = ROUTER_RTC_VIDEO_CALL;
+            } else {
+                path = ROUTER_RTC_VIDEO_RECEIVE;
+            }
         });
 
         findViewById(R.id.btn_login_rtc).setOnClickListener(view -> {
@@ -202,7 +213,7 @@ public class LoginActivity extends AppCompatActivity {
 
         startActivity(intent);*/
 
-        ARouter.getInstance().build(ROUTER_RTC_VIDEO)
+        ARouter.getInstance().build(path)
                 .withString("userid", userId)
                 .withString("roomname", roomId)
                 .navigation();

@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.baidu.rtc.videoroom.R;
-import com.luqian.rtc.ui.video.VideoActivity;
+import com.luqian.rtc.ui.video.VideoCallActivity;
 import com.lxj.xpopup.core.CenterPopupView;
 
 /**
@@ -20,11 +20,11 @@ import com.lxj.xpopup.core.CenterPopupView;
 @SuppressLint("ViewConstructor")
 public class CallPop extends CenterPopupView {
 
-    private final VideoActivity mActivity;
+    private final VideoCallActivity mActivity;
     private TextView mTvContent;
     private String data = "";
 
-    public CallPop(@NonNull VideoActivity mActivity) {
+    public CallPop(@NonNull VideoCallActivity mActivity) {
         super(mActivity);
         this.mActivity = mActivity;
     }
