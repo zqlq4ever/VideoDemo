@@ -125,7 +125,7 @@
     <string name = "pref_title_recording">录制</string>
     <string name = "pref_title_platform_server">平台服务器</string>
     
-    <!-- 1v1 call mode -->
+    <!-- 1 v 1 call mode -->
     <string name = "start_call">正在拨号</string>
     <string name = "in_calling_state">正在发起通话中,请等待</string>
     <string name = "cancel">取消</string>

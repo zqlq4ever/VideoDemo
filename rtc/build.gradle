@@ -17,6 +17,12 @@ android {
         ndk {
             abiFilters 'armeabi-v7a'    //, 'arm64-v8a'
         }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [AROUTER_MODULE_NAME: project.getName()]
+            }
+        }
     }
 
     buildTypes {
@@ -41,9 +47,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     api 'com.permissionx.guolindev:permissionx:1.4.0'
     api 'com.gyf.immersionbar:immersionbar:3.0.0'
-    api 'com.github.li-xiaojun:XPopup:2.3.8'
+    api 'com.github.li-xiaojun:XPopup:2.4.0'
     api 'com.github.RuffianZhong:RWidgetHelper:androidx.v0.0.1'
     api 'com.elvishew:xlog:1.9.0'
     runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel:2.3.1'
     runtimeOnly 'androidx.lifecycle:lifecycle-livedata:2.3.1'
+    api 'com.alibaba:arouter-api:1.5.1'
+    annotationProcessor 'com.alibaba:arouter-compiler:1.5.1'
 }

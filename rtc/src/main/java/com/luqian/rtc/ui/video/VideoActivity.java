@@ -1,5 +1,7 @@
 package com.luqian.rtc.ui.video;
 
+import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -10,6 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.alibaba.android.arouter.facade.annotation.Autowired;
+import com.alibaba.android.arouter.facade.annotation.Route;
+import com.alibaba.android.arouter.launcher.ARouter;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
@@ -27,50 +32,44 @@ import com.lxj.xpopup.impl.LoadingPopupView;
 /**
  * 1 v 1 音视频通话
  */
+@Route(path = ROUTER_RTC_VIDEO)
 public class VideoActivity extends AppCompatActivity implements CallStateObserver {
 
     private static final String TAG = "VideoCallActivity";
     private CallPop mCallPop;
     private ReceivedCallPop mReceivedCallPop;
     private ImageView mIvCall;
-    private ImageView mIvAudio;
-    private ImageView mIvSpeaker;
-    private ImageView mIvVideo;
-    private ImageView mIvCamera;
     public VideoViewModel mViewModel;
     public CallManager mCallManager;
     private LoadingPopupView mLoadingPopup;
 
+    @Autowired
+    public String userid;
+    @Autowired
+    public String roomname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.black));
+        setContentView(R.layout.activity_video);
 
         ImmersionBar.with(this)
-                //  使用该属性,必须指定状态栏颜色
                 .fitsSystemWindows(true)
                 .statusBarColor(R.color.black)
                 .init();
-
-        getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.black));
-
-        setContentView(R.layout.activity_video);
-
+        ARouter.getInstance().inject(this);
         mIvCall = findViewById(R.id.iv_call);
 
-        mIvAudio = findViewById(R.id.iv_audio);
+        ImageView ivAudio = findViewById(R.id.iv_audio);
 
-        mIvSpeaker = findViewById(R.id.iv_speaker);
+        ImageView ivSpeaker = findViewById(R.id.iv_speaker);
 
-        mIvVideo = findViewById(R.id.iv_video);
+        ImageView ivVideo = findViewById(R.id.iv_video);
 
-        mIvCamera = findViewById(R.id.iv_camera);
+        ImageView ivCamera = findViewById(R.id.iv_camera);
 
         mViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
-
-        String userid = getIntent().getStringExtra("userid");
-
-        String roomName = getIntent().getStringExtra("roomname");
 
         mIvCall.setOnClickListener(view -> {
             if (mCallManager.getCurrentState() == CallState.NORMAL) {
@@ -90,19 +89,19 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
             }
         });
 
-        mIvAudio.setOnClickListener(this::muteMicphone);
+        ivAudio.setOnClickListener(this::muteMicphone);
 
-        mIvSpeaker.setOnClickListener(this::switchSpeaker);
+        ivSpeaker.setOnClickListener(this::switchSpeaker);
 
-        mIvVideo.setOnClickListener(this::muteVideo);
+        ivVideo.setOnClickListener(this::muteVideo);
 
-        mIvCamera.setOnClickListener(this::switchCamera);
+        ivCamera.setOnClickListener(this::switchCamera);
 
         mCallManager = new CallManager(this);
 
         mViewModel.InitRTCRoom();
 
-        mViewModel.loginRtc(roomName, Long.parseLong(userid), "");
+        mViewModel.loginRtc(roomname, Long.parseLong(userid), "");
 
         showLoading();
 

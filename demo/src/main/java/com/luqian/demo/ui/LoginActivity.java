@@ -1,5 +1,7 @@
 package com.luqian.demo.ui;
 
+import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -16,9 +18,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.alibaba.android.arouter.launcher.ARouter;
 import com.gyf.immersionbar.ImmersionBar;
 import com.luqian.demo.R;
-import com.luqian.rtc.ui.video.VideoActivity;
 import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")
@@ -37,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         ImmersionBar.with(this)
-                .fitsSystemWindows(true)  //    使用该属性,必须指定状态栏颜色
+                .fitsSystemWindows(true)
                 .statusBarColor(R.color.white)
                 .statusBarDarkFont(true)
                 .init();
@@ -161,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
      * @param roomId 房间 ID
      */
     private void toVideoPage(String userId, String roomId) {
-        Intent intent = new Intent(LoginActivity.this, VideoActivity.class);
+       /* Intent intent = new Intent(LoginActivity.this, VideoActivity.class);
 
         intent.putExtra("userid", userId);
         intent.putExtra("roomname", roomId);
@@ -198,7 +200,12 @@ public class LoginActivity extends AppCompatActivity {
         boolean recording = sp.getBoolean("key_recording", false);
         intent.putExtra("recording", recording);
 
-        startActivity(intent);
+        startActivity(intent);*/
+
+        ARouter.getInstance().build(ROUTER_RTC_VIDEO)
+                .withString("userid", userId)
+                .withString("roomname", roomId)
+                .navigation();
     }
 }
 
