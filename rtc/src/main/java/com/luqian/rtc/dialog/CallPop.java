@@ -1,4 +1,4 @@
-package com.luqian.demo.widget.dialog;
+package com.luqian.rtc.dialog;
 
 import android.annotation.SuppressLint;
 import android.text.TextUtils;
@@ -8,30 +8,30 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.baidu.rtc.videoroom.R;
-import com.luqian.demo.ui.video.VideoActivity;
+import com.luqian.rtc.ui.video.VideoActivity;
 import com.lxj.xpopup.core.CenterPopupView;
 
 /**
  * @author LUQIAN
  * @date 2021/6/8
  *
- * <p>收到来电
+ * <p>拨号
  */
 @SuppressLint("ViewConstructor")
-public class ReceivedCallPop extends CenterPopupView {
+public class CallPop extends CenterPopupView {
 
     private final VideoActivity mActivity;
-    private TextView mTvTitle;
+    private TextView mTvContent;
     private String data = "";
 
-    public ReceivedCallPop(@NonNull VideoActivity mActivity) {
+    public CallPop(@NonNull VideoActivity mActivity) {
         super(mActivity);
         this.mActivity = mActivity;
     }
 
     @Override
     protected int getImplLayoutId() {
-        return R.layout.pop_received_call;
+        return R.layout.pop_call;
     }
 
 
@@ -39,15 +39,10 @@ public class ReceivedCallPop extends CenterPopupView {
     protected void onCreate() {
         super.onCreate();
         findViewById(R.id.tv_cancel).setOnClickListener(v -> {
-            dismiss();
+            mActivity.dismissCall();
             mActivity.cancelCall();
         });
-        findViewById(R.id.tv_receive).setOnClickListener(v -> {
-            dismiss();
-            mActivity.receiveCall();
-        });
-        mTvTitle = findViewById(R.id.tv_title);
-        setData(data);
+        mTvContent = findViewById(R.id.tv_content);
     }
 
 
@@ -56,10 +51,11 @@ public class ReceivedCallPop extends CenterPopupView {
         super.dismissWith(runnable);
     }
 
+
     public void setData(@Nullable String data) {
         this.data = data;
-        if (mTvTitle != null && !TextUtils.isEmpty(this.data)) {
-            mTvTitle.setText(this.data);
+        if (mTvContent != null && !TextUtils.isEmpty(this.data)) {
+            mTvContent.setText(this.data);
         }
     }
 }

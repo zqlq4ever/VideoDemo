@@ -18,7 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.gyf.immersionbar.ImmersionBar;
 import com.luqian.demo.R;
-import com.luqian.demo.ui.video.VideoActivity;
+import com.luqian.rtc.ui.video.VideoActivity;
 import com.permissionx.guolindev.PermissionX;
 
 @SuppressLint("SetTextI18n")

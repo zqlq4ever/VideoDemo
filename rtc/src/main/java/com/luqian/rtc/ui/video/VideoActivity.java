@@ -1,4 +1,4 @@
-package com.luqian.demo.ui.video;
+package com.luqian.rtc.ui.video;
 
 import android.os.Bundle;
 import android.view.View;
@@ -13,13 +13,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
 import com.gyf.immersionbar.ImmersionBar;
-import com.luqian.demo.widget.dialog.CallPop;
-import com.luqian.demo.widget.dialog.ReceivedCallPop;
 import com.luqian.rtc.CallManager;
 import com.luqian.rtc.bean.CallCommand;
 import com.luqian.rtc.bean.CallRole;
 import com.luqian.rtc.bean.CallState;
 import com.luqian.rtc.common.CallStateObserver;
+import com.luqian.rtc.dialog.CallPop;
+import com.luqian.rtc.dialog.ReceivedCallPop;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.enums.PopupAnimation;
 import com.lxj.xpopup.impl.LoadingPopupView;
@@ -347,11 +347,13 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
     @Override
     public void onBackPressed() {
-        /*if (mCallManager.getCurrentState() == CallState.CALLING) {
-            mCallManager.finishCall();
+        //  通话中，不能返回
+        if (mCallManager.getCurrentState() == CallState.CALLING) {
+            return;
         }
+        mCallManager.finishCall();
         mIvCall.setImageResource(R.drawable.ic_start_call);
-        super.onBackPressed();*/
+        super.onBackPressed();
     }
 
     protected void toast(@StringRes int resId) {
@@ -438,3 +440,4 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
         mViewModel.switchLoundSpeaker();
     }
 }
+

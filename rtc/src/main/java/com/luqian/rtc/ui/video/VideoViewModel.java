@@ -1,4 +1,4 @@
-package com.luqian.rtc;
+package com.luqian.rtc.ui.video;
 
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
@@ -13,6 +13,7 @@ import com.baidu.rtc.RTCVideoView;
 import com.baidu.rtc.RtcParameterSettings;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
+import com.luqian.rtc.BaseApp;
 import com.luqian.rtc.bean.RtcLoginStatus;
 
 import java.nio.ByteBuffer;
@@ -22,7 +23,7 @@ import java.nio.charset.Charset;
  * @author LUQIAN
  * @date 2021/6/10
  */
-public class RtcViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoomDelegate {
+public class VideoViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRoomDelegate {
 
     /**
      * 登录状态
