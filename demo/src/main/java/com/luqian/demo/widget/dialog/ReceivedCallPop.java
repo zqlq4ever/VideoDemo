@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import com.baidu.rtc.videoroom.R;
 import com.luqian.demo.ui.video.VideoActivity;
 import com.lxj.xpopup.core.CenterPopupView;
-import com.lxj.xpopup.util.KeyboardUtils;
 
 /**
  * @author LUQIAN
@@ -22,7 +21,7 @@ import com.lxj.xpopup.util.KeyboardUtils;
 public class ReceivedCallPop extends CenterPopupView {
 
     private final VideoActivity mActivity;
-    private TextView mTvContent;
+    private TextView mTvTitle;
     private String data = "";
 
     public ReceivedCallPop(@NonNull VideoActivity mActivity) {
@@ -47,14 +46,10 @@ public class ReceivedCallPop extends CenterPopupView {
             dismiss();
             mActivity.receiveCall();
         });
-        mTvContent = findViewById(R.id.tv_content);
+        mTvTitle = findViewById(R.id.tv_title);
+        setData(data);
     }
 
-    @Override
-    protected void onShow() {
-        super.onShow();
-        KeyboardUtils.hideSoftInput(mTvContent);
-    }
 
     @Override
     public void dismissWith(Runnable runnable) {
@@ -63,8 +58,8 @@ public class ReceivedCallPop extends CenterPopupView {
 
     public void setData(@Nullable String data) {
         this.data = data;
-        if (mTvContent != null && !TextUtils.isEmpty(this.data)) {
-            mTvContent.setText(this.data);
+        if (mTvTitle != null && !TextUtils.isEmpty(this.data)) {
+            mTvTitle.setText(this.data);
         }
     }
 }

@@ -24,7 +24,7 @@
         
         <activity
             android:name = ".ui.video.VideoActivity"
-            android:launchMode = "singleInstance"
+            android:launchMode = "singleTop"
             android:screenOrientation = "portrait" />
         
         <activity

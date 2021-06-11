@@ -60,9 +60,10 @@ public class CallManager {
      * 收到通话邀请
      */
     public void receiveCall() {
-        currentState = CallState.CALLING;
-        timerHandler.removeCallbacks(timerRunnable);   // 关闭 ring 定时器
         sendOkCommand();
+        // 关闭 ring 定时器
+        timerHandler.removeCallbacks(timerRunnable);
+        currentState = CallState.CALLING;
         observer.onStateChange(currentState, currentRole, CallCommand.OK, CallRole.RECEIVER);
     }
 
@@ -73,7 +74,8 @@ public class CallManager {
     public void cancelCall() {
         sendCancelCommand();
         currentState = CallState.NORMAL;
-        timerHandler.removeCallbacks(timerRunnable);    // 关闭 ring 定时器
+        // 关闭 ring 定时器
+        timerHandler.removeCallbacks(timerRunnable);
         observer.onStateChange(currentState, currentRole, CallCommand.CANCEL, currentRole);
     }
 
@@ -305,6 +307,7 @@ public class CallManager {
     }
 
 
+    //  CallState.CALLING 状态下，双方都需要处理消息
     private void onFinishCommand() {
         switch (currentState) {
             case CALLING:
@@ -325,7 +328,7 @@ public class CallManager {
         switch (currentState) {
             case RINGING:
                 if (currentRole == CallRole.RECEIVER) {
-                    timerHandler.removeCallbacks(timerRunnable);    //  关闭ring定时器
+                    timerHandler.removeCallbacks(timerRunnable);
                 }
                 currentState = CallState.NORMAL;
                 observer.onStateChange(

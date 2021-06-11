@@ -186,9 +186,12 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
     }
 
 
+    /**
+     * 弹出来电提醒框
+     */
     private void showReceivePop() {
 
-        dismissCall();
+        dismissReceive();
 
         mViewModel.playMusic();
 
@@ -203,6 +206,11 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
         }
 
         mReceivedCallPop.show();
+        Long userId = mViewModel.mUserJoin.getValue();
+        if (userId != null) {
+            mReceivedCallPop.setData("收到" + userId + "的来电");
+        }
+
     }
 
 
@@ -298,9 +306,6 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
                     mIvCall.setImageResource(R.drawable.ic_start_call);
                     mViewModel.stopMusic();
                     break;
-                //  切换为邀请通话中
-                case INVITING:
-                    break;
                 //  切换为响铃中
                 case RINGING:
                     //  接收方，弹窗提醒接听
@@ -342,11 +347,11 @@ public class VideoActivity extends AppCompatActivity implements CallStateObserve
 
     @Override
     public void onBackPressed() {
-        if (mCallManager.getCurrentState() == CallState.CALLING) {
+        /*if (mCallManager.getCurrentState() == CallState.CALLING) {
             mCallManager.finishCall();
         }
         mIvCall.setImageResource(R.drawable.ic_start_call);
-        super.onBackPressed();
+        super.onBackPressed();*/
     }
 
     protected void toast(@StringRes int resId) {
