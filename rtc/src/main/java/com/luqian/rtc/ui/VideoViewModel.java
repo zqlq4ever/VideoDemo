@@ -13,7 +13,7 @@ import com.baidu.rtc.RTCVideoView;
 import com.baidu.rtc.RtcParameterSettings;
 import com.baidu.rtc.videoroom.R;
 import com.elvishew.xlog.XLog;
-import com.luqian.rtc.BaseApp;
+import com.luqian.base.BaseApp;
 import com.luqian.rtc.bean.RtcLoginStatus;
 
 import java.nio.ByteBuffer;

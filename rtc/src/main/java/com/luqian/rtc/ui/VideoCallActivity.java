@@ -1,6 +1,6 @@
 package com.luqian.rtc.ui;
 
-import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_CALL;
+import static com.luqian.base.RtcConstant.ROUTER_RTC_VIDEO_CALL;
 
 import android.os.Bundle;
 import android.view.View;

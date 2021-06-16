@@ -1,4 +1,4 @@
-package com.luqian.rtc.common;
+package com.luqian.base;
 
 /**
  * @author LUQIAN

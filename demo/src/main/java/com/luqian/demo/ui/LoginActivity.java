@@ -1,7 +1,7 @@
 package com.luqian.demo.ui;
 
-import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_CALL;
-import static com.luqian.rtc.common.RtcConstant.ROUTER_RTC_VIDEO_RECEIVE;
+import static com.luqian.base.RtcConstant.ROUTER_RTC_VIDEO_CALL;
+import static com.luqian.base.RtcConstant.ROUTER_RTC_VIDEO_RECEIVE;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -61,22 +60,6 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             mEtRoomID.setText(Integer.valueOf(sp.getInt("RoomID", 99999999)).toString());
         }
-
-        mEtRoomID.setOnEditorActionListener((textView, id, keyEvent) -> {
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptLogin();
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-
-                prefs.edit().putLong("UserID", Long.parseLong(mUserID.getText().toString())).commit();
-
-                if (mEtRoomID.getText().toString().isEmpty()) {
-                    return true;
-                }
-                prefs.edit().putString("RoomID", mEtRoomID.getText().toString()).commit();
-                return true;
-            }
-            return false;
-        });
 
         ((RadioGroup) findViewById(R.id.rg_role)).setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rb_call) {
