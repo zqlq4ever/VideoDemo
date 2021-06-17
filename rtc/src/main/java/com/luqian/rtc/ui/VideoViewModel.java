@@ -422,8 +422,11 @@ public class VideoViewModel extends ViewModel implements BaiduRtcRoom.BaiduRtcRo
      * RTC 资源销毁
      */
     public void releaseRtc() {
-        mBaiduRtcRoom.logoutRtcRoom();
-        mBaiduRtcRoom.destroy();
+        if (mBaiduRtcRoom != null) {
+            mBaiduRtcRoom.logoutRtcRoom();
+            mBaiduRtcRoom.destroy();
+            mBaiduRtcRoom = null;
+        }
         stopMusic();
         releaseMusic();
     }

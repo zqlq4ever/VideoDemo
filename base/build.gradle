@@ -9,8 +9,6 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 30
-        versionCode 1
-        versionName "1.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -42,7 +40,7 @@ dependencies {
     api 'com.gyf.immersionbar:immersionbar:3.0.0'
     api 'com.github.li-xiaojun:XPopup:2.4.0'
     api 'com.github.RuffianZhong:RWidgetHelper:androidx.v0.0.1'
-    api 'com.elvishew:xlog:1.9.0'
+    api 'com.elvishew:xlog:1.10.0'
     runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel:2.3.1'
     runtimeOnly 'androidx.lifecycle:lifecycle-livedata:2.3.1'
     api 'com.alibaba:arouter-api:1.5.1'

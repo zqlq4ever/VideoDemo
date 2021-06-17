@@ -42,5 +42,7 @@ dependencies {
     implementation project(path: ':rtc')
 
     implementation 'com.tencent.bugly:crashreport:latest.release'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
+
     annotationProcessor 'com.alibaba:arouter-compiler:1.5.1'
 }
